@@ -1,0 +1,66 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.MyApplication" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <!-- Primary brand color — pocket watch blue. -->
+        <item name="colorPrimary">@color/watch_blue_dark</item>
+        <item name="colorPrimaryVariant">@color/watch_blue_deep</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/watch_blue</item>
+        <item name="colorSecondaryVariant">@color/watch_blue_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Background and surface -->
+        <item name="android:colorBackground">@color/watch_surface</item>
+        <item name="colorSurface">@color/watch_surface_card</item>
+        <item name="colorOnSurface">@color/watch_text_primary</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/watch_blue_deep</item>
+        <!-- Global text appearance for seniors -->
+        <item name="android:textColorPrimary">@color/watch_text_primary</item>
+        <item name="android:textColorSecondary">@color/watch_text_secondary</item>
+    </style>
+
+    <style name="Theme.MyApplication.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.MyApplication.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.MyApplication.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Senior-friendly button style -->
+    <style name="Widget.CircleEvents.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textSize">@dimen/text_button</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="backgroundTint">@color/watch_blue</item>
+    </style>
+
+    <!-- Outlined button style -->
+    <style name="Widget.CircleEvents.Button.Outlined" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textSize">@dimen/text_button</item>
+        <item name="android:minHeight">@dimen/button_height</item>
+        <item name="android:paddingLeft">32dp</item>
+        <item name="android:paddingRight">32dp</item>
+        <item name="cornerRadius">@dimen/button_corner_radius</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/watch_blue</item>
+        <item name="strokeColor">@color/watch_blue</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <!-- Large input style -->
+    <style name="Widget.CircleEvents.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/watch_blue</item>
+        <item name="hintTextColor">@color/watch_blue_dark</item>
+    </style>
+</resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Pocket Watch palette -->
+    <color name="periwinkle">#A9C7EE</color>
+    <color name="marine">#587880</color>
+    <color name="Imperial">#1134A6</color>
+    <color name="turq">#48CAE4</color>
+    <color name="light">#ADE8F4</color>
+
+    <!-- Senior-friendly extended palette matching pocket watch logo -->
+    <color name="watch_blue">#5B9BD5</color>
+    <color name="watch_blue_dark">#2C5F8A</color>
+    <color name="watch_blue_deep">#1A3A5C</color>
+    <color name="watch_surface">#F0F6FC</color>
+    <color name="watch_surface_card">#FFFFFF</color>
+    <color name="watch_text_primary">#1A2B3D</color>
+    <color name="watch_text_secondary">#4A6178</color>
+    <color name="watch_text_on_dark">#FFFFFF</color>
+    <color name="watch_divider">#D6E4F0</color>
+    <color name="watch_input_bg">#EAF2FB</color>
+    <color name="watch_button_text">#FFFFFF</color>
+    <color name="watch_accent">#48CAE4</color>
+    <color name="watch_surface_center">#E8F0FA</color>
+    <color name="watch_card_header">#2C5F8A</color>
+    <color name="watch_error">#C62828</color>
+    <color name="watch_success">#2E7D32</color>
+
+    <!-- Dark theme variants -->
+    <color name="watch_dark_surface">#0F1C2E</color>
+    <color name="watch_dark_card">#1A2B3D</color>
+    <color name="watch_dark_input">#1E3450</color>
+</resources>
