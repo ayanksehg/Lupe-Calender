@@ -1,0 +1,5 @@
+/build
+app\src\main\java\com\example\myapplication\ui/
+
+# Firebase config — contains project id + API key. Keep out of public repos.
+/google-services.json

@@ -1,0 +1,185 @@
+package com.example.myapplication;
+
+import static androidx.core.content.ContextCompat.getSystemService;
+
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+
+import com.example.myapplication.ui.home.EventViewModel;
+import com.example.myapplication.ui.start.Mode;
+import com.google.android.material.navigation.NavigationView;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.AppCompatActivity;
+import java.util.Calendar;
+import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
+import com.example.myapplication.databinding.ActivityMainBinding;
+import com.google.firebase.Firebase;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.Map;
+import java.util.HashMap;
+
+public class MainActivity extends AppCompatActivity {
+
+    private AppBarConfiguration mAppBarConfiguration;
+    private ActivityMainBinding binding;
+    FirebaseFirestore firestore;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventViewModel eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        firestore = FirebaseFirestore.getInstance();
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        requestNotificationPermission();
+        requestExactAlarmPermission();
+        setSupportActionBar(binding.appBarMain.toolbar);
+
+        DrawerLayout drawer = binding.drawerLayout;
+        NavigationView navigationView = binding.navView;
+        mAppBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow) //gallery fragment is commented out in activity_main_drawer.xml
+                .setOpenableLayout(drawer)
+                .build();
+        NavController navController = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
+        NavigationUI.setupActionBarWithNavController(MainActivity.this, navController, mAppBarConfiguration);
+        NavigationUI.setupWithNavController(navigationView, navController);
+        navController.addOnDestinationChangedListener(
+                (controller, destination, arguments) -> {
+                    Mode mode = eventViewModel.getSelectedMode().getValue();
+                    if (destination.getId() == R.id.nav_home && mode == Mode.JOIN) {
+                        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+                        navigationView.setVisibility(View.GONE);
+                        if (getSupportActionBar() != null) {
+                            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                            getSupportActionBar().setHomeButtonEnabled(false);
+                        }
+                    } else {
+                        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                        navigationView.setVisibility(View.VISIBLE);
+                    }
+                }
+        );
+
+        createNotificationChannel();
+    }
+    private static final String CHANNEL_ID = "event_reminders";
+    private void createNotificationChannel(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Event Reminders",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for scheduled events");
+            channel.enableVibration(true);
+            channel.enableLights(true);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(channel);
+        }
+    }
+    private void requestNotificationPermission(){
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU){
+            if(ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS)!= PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        1);
+            }
+        }
+    }
+    private void requestExactAlarmPermission(){
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+            }
+        }
+    }
+    public void scheduleEventNotification( long time, String title, int requestCode, String eventId){
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra("title", title);
+        intent.putExtra("event_id", eventId);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+//        if(recurrence==0){
+//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+//        }
+//        else if(recurrence == 1){
+//            alarmManager.setRepeating(
+//                    AlarmManager.RTC_WAKEUP,
+//                    time,
+//                    AlarmManager.INTERVAL_DAY,
+//                    pendingIntent
+//            );
+//        }
+//
+//        else if(recurrence == 2){
+//            alarmManager.setRepeating(
+//                    AlarmManager.RTC_WAKEUP,
+//                    time,
+//                    AlarmManager.INTERVAL_DAY*7,
+//                    pendingIntent
+//            );
+//        }
+
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+            navController.navigate(R.id.nav_settings);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public  boolean onSupportNavigateUp() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
+                || super.onSupportNavigateUp();
+    }
+}

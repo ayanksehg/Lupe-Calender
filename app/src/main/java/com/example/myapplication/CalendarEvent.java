@@ -1,0 +1,9 @@
+package com.example.myapplication;
+
+public class CalendarEvent {
+    public String summary;
+    public String description;
+    public String location;
+    public EventDateTime start;
+    public EventDateTime end;
+}
