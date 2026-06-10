@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Claude Code tooling / docs — not part of the app
+.claude/
+CLAUDE.md
+docs/superpowers/
