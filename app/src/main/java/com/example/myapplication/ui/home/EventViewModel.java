@@ -34,11 +34,30 @@ public class EventViewModel extends ViewModel {
     private final MutableLiveData<Mode> selectedMode = new MutableLiveData<>(Mode.START);
     private final MutableLiveData<String> currentCircleCode = new MutableLiveData<>("");
     private final MutableLiveData<Boolean> isRefreshing = new MutableLiveData<>(false);
+    private final MutableLiveData<List<Event>> rawEvents = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<ViewWindow> viewWindow = new MutableLiveData<>(ViewWindow.DAY);
+    private List<Event> rawGoogleEvents = new ArrayList<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration listenerRegistration;
 
     public LiveData<List<Event>> getEvents() {
         return events;
+    }
+
+    public LiveData<List<Event>> getRawEvents() {
+        return rawEvents;
+    }
+
+    public LiveData<ViewWindow> getViewWindow() {
+        return viewWindow;
+    }
+
+    private void rebuildDisplayedList() {
+        List<Event> raw = rawEvents.getValue();
+        if (raw == null) raw = new ArrayList<>();
+        ViewWindow window = viewWindow.getValue();
+        if (window == null) window = ViewWindow.DAY;
+        events.postValue(DisplayedListBuilder.build(raw, rawGoogleEvents, window, System.currentTimeMillis()));
     }
 
     public LiveData<Boolean> getIsRefreshing() {
@@ -70,6 +89,8 @@ public class EventViewModel extends ViewModel {
         }
 
         if (circleCode == null || circleCode.isEmpty()) {
+            rawEvents.setValue(new ArrayList<>());
+            rawGoogleEvents = new ArrayList<>();
             events.setValue(new ArrayList<>());
             return;
         }
@@ -80,20 +101,35 @@ public class EventViewModel extends ViewModel {
                     if (error != null) {
                         return;
                     }
-
                     if (value != null) {
                         List<Event> eventList = new ArrayList<>();
+                        long now = System.currentTimeMillis();
                         for (QueryDocumentSnapshot doc : value) {
-
                             Event event = doc.toObject(Event.class);
                             event.id = doc.getId();
-                            if (parseDateTimeToMillis(event.date, event.time)<= System.currentTimeMillis()){
-                                FirebaseFirestore.getInstance().collection("events").document(event.getId()).delete();
-                                continue;
+
+                            boolean recurring = event.recurrence != null
+                                    && !"NONE".equals(event.recurrence)
+                                    && !event.recurrence.isEmpty();
+
+                            if (recurring) {
+                                // Delete the series only once it is fully exhausted.
+                                if (RecurrenceExpander.nextOccurrenceAfter(event.date, event.time,
+                                        event.recurrence, event.recurrenceEndDate, now) == -1) {
+                                    db.collection("events").document(event.getId()).delete();
+                                    continue;
+                                }
+                            } else {
+                                // One-off: delete once it has passed (unchanged behavior).
+                                if (parseDateTimeToMillis(event.date, event.time) <= now) {
+                                    db.collection("events").document(event.getId()).delete();
+                                    continue;
+                                }
                             }
                             eventList.add(event);
                         }
-                        events.setValue(eventList);
+                        rawEvents.setValue(eventList);
+                        rebuildDisplayedList();
                         fetchEventsForCircle(circleCode);
                     }
                 });
@@ -129,21 +165,8 @@ public class EventViewModel extends ViewModel {
                             List<Event> googleEvents = parseCalendarItems(items);
                             Log.d("CalendarAPI", "Parsed " + googleEvents.size() + " Google Calendar events.");
 
-                            // Get the current list (which contains Firestore events)
-                            List<Event> currentEvents = events.getValue();
-                            if (currentEvents == null) currentEvents = new ArrayList<>();
-
-                            // Rebuild the merged list, dropping any previously-fetched Google
-                            // Calendar events so repeated refreshes don't create duplicates.
-                            List<Event> mergedList = new ArrayList<>();
-                            for (Event e : currentEvents) {
-                                if (!"google_calendar".equals(e.circleCode)) {
-                                    mergedList.add(e);
-                                }
-                            }
-                            mergedList.addAll(googleEvents);
-
-                            events.postValue(mergedList);
+                            rawGoogleEvents = googleEvents;
+                            rebuildDisplayedList();
                             isRefreshing.postValue(false);
                         } else {
                             String errorBody = "";
@@ -165,11 +188,16 @@ public class EventViewModel extends ViewModel {
                 .document(circleCode)
                 .get()
                 .addOnSuccessListener(doc -> {
+                    if (doc.exists() && doc.getString("viewWindow") != null) {
+                        // setValue (not postValue) so the value is visible to the rebuild on this
+                        // same main-thread callback; postValue would defer and rebuild stale.
+                        viewWindow.setValue(ViewWindow.fromString(doc.getString("viewWindow")));
+                        rebuildDisplayedList();
+                    }
                     if (doc.exists() && doc.getString("calendarId") != null) {
                         String calendarId = doc.getString("calendarId");
                         fetchGoogleCalendarEvents(calendarId);
                     } else {
-                        // No calendar linked for this circle; nothing to fetch.
                         isRefreshing.postValue(false);
                     }
                 })
@@ -250,6 +278,18 @@ public class EventViewModel extends ViewModel {
 
     public void setSelectedMode(Mode mode) {
         selectedMode.setValue(mode);
+    }
+
+    public void setViewWindow(ViewWindow window) {
+        viewWindow.setValue(window);
+        rebuildDisplayedList();
+        String code = currentCircleCode.getValue();
+        if (code != null && !code.isEmpty()) {
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            data.put("viewWindow", window.name());
+            db.collection("circles").document(code)
+                    .set(data, com.google.firebase.firestore.SetOptions.merge());
+        }
     }
     public LiveData<String> getCircleCode(){
         return currentCircleCode;

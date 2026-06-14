@@ -124,11 +124,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    public void scheduleEventNotification( long time, String title, int requestCode, String eventId){
+    public void scheduleEventNotification(long time, String title, int requestCode, String eventId) {
+        scheduleEventNotification(time, title, requestCode, eventId, "NONE", null);
+    }
+
+    public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
+                                          String recurrence, String recurrenceEndDate) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("title", title);
         intent.putExtra("event_id", eventId);
+        intent.putExtra("recurrence", recurrence);
+        intent.putExtra("recurrence_end_date", recurrenceEndDate);
+        intent.putExtra("request_code", requestCode);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
@@ -137,27 +145,6 @@ public class MainActivity extends AppCompatActivity {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
-//        if(recurrence==0){
-//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
-//        }
-//        else if(recurrence == 1){
-//            alarmManager.setRepeating(
-//                    AlarmManager.RTC_WAKEUP,
-//                    time,
-//                    AlarmManager.INTERVAL_DAY,
-//                    pendingIntent
-//            );
-//        }
-//
-//        else if(recurrence == 2){
-//            alarmManager.setRepeating(
-//                    AlarmManager.RTC_WAKEUP,
-//                    time,
-//                    AlarmManager.INTERVAL_DAY*7,
-//                    pendingIntent
-//            );
-//        }
-
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

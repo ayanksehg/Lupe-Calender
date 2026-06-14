@@ -71,8 +71,22 @@ public class HomeFragment extends Fragment {
                         previousDate = e.date;
                     }
                     addCard(llContainer, e, selectedMode, eventViewModel);
-                    scheduleAlarmIfNeeded(e);
                 }
+            }
+        });
+
+        eventViewModel.getRawEvents().observe(getViewLifecycleOwner(), rawEvents -> {
+            if (rawEvents == null) return;
+            long now = System.currentTimeMillis();
+            for (Event e : rawEvents) {
+                if (e.circleCode != null && e.circleCode.equals("google_calendar")) continue;
+                long next = RecurrenceExpander.nextOccurrenceAfter(
+                        e.date, e.time, e.recurrence, e.recurrenceEndDate, now);
+                if (next <= 0) continue;
+                ((MainActivity) requireActivity()).scheduleEventNotification(
+                        next, e.title, e.getId().hashCode(), e.getId(),
+                        e.recurrence == null ? "NONE" : e.recurrence,
+                        e.recurrenceEndDate);
             }
         });
 
@@ -94,16 +108,15 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void scheduleAlarmIfNeeded(Event event) {
-        if (event.circleCode != null && event.circleCode.equals("google_calendar")) {
-            return;
+    private String recurrenceLabel(String recurrence) {
+        if (recurrence == null || "NONE".equals(recurrence) || recurrence.isEmpty()) return null;
+        switch (recurrence) {
+            case "DAILY":   return "Repeats daily";
+            case "WEEKLY":  return "Repeats weekly";
+            case "MONTHLY": return "Repeats monthly";
+            case "YEARLY":  return "Repeats yearly";
+            default:        return null;
         }
-        long eventTime = parseDateTimeToMillis(event.date, event.time);
-        if (eventTime <= System.currentTimeMillis()) {
-            return;
-        }
-        ((MainActivity) requireActivity()).scheduleEventNotification(
-                eventTime, event.title, event.getId().hashCode(), event.getId());
     }
 
     private long parseDateTimeToMillis(String date, String time) {
@@ -149,6 +162,15 @@ public class HomeFragment extends Fragment {
         eventcardBinding.textTitle.setText(event.title);
         eventcardBinding.textDate.setText(event.date);
         eventcardBinding.textTime.setText(event.time);
+
+        String recurLabel = recurrenceLabel(event.recurrence);
+        if (recurLabel != null) {
+            eventcardBinding.textRecurrence.setText(recurLabel);
+            eventcardBinding.textRecurrence.setVisibility(View.VISIBLE);
+        } else {
+            eventcardBinding.textRecurrence.setVisibility(View.GONE);
+        }
+
         Button btnDelete = eventcardBinding.btnDelete;
 
         if(mode == Mode.ADMIN){

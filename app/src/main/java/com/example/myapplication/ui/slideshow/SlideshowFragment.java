@@ -48,6 +48,18 @@ public class SlideshowFragment extends Fragment {
             binding.textSlideshow.setText("Calendar Settings");
         }
         else{
+            String[] recurLabels = getResources().getStringArray(R.array.recurrence_labels);
+            String[] recurValues = getResources().getStringArray(R.array.recurrence_values);
+            android.widget.ArrayAdapter<String> recurAdapter = new android.widget.ArrayAdapter<>(
+                    requireContext(), android.R.layout.simple_list_item_1, recurLabels);
+            binding.recurrenceDropdown.setAdapter(recurAdapter);
+            binding.recurrenceDropdown.setText(recurLabels[0], false); // "Does not repeat"
+
+            binding.recurrenceDropdown.setOnItemClickListener((parent, view, position, id) -> {
+                boolean repeats = position != 0; // index 0 == NONE
+                binding.repeatUntilLayout.setVisibility(repeats ? View.VISIBLE : View.GONE);
+            });
+
             create.setOnClickListener(v -> {
                 String titleText = title.getText().toString();
                 String dateText = date.getText().toString();
@@ -59,6 +71,18 @@ public class SlideshowFragment extends Fragment {
                     return;
                 }
 
+                // Resolve recurrence label -> value
+                String selectedLabel = binding.recurrenceDropdown.getText().toString();
+                String recurrenceValue = "NONE";
+                for (int i = 0; i < recurLabels.length; i++) {
+                    if (recurLabels[i].equals(selectedLabel)) {
+                        recurrenceValue = recurValues[i];
+                        break;
+                    }
+                }
+                String repeatUntil = binding.editTextRepeatUntil.getText().toString().trim();
+                if ("NONE".equals(recurrenceValue)) repeatUntil = null;
+
                 Event e = new Event(
                         titleText,
                         "description",
@@ -66,8 +90,9 @@ public class SlideshowFragment extends Fragment {
                         timeText,
                         "location",
                         eventViewModel.getCurrentCircleCode().getValue()
-
                 );
+                e.recurrence = recurrenceValue;
+                e.recurrenceEndDate = (repeatUntil != null && repeatUntil.isEmpty()) ? null : repeatUntil;
 
                 eventViewModel.addEvent(e);
 
@@ -76,13 +101,18 @@ public class SlideshowFragment extends Fragment {
                                 eventTime,
                                 titleText,
                                 e.getId().hashCode(),
-                                e.getId()
+                                e.getId(),
+                                e.recurrence,
+                                e.recurrenceEndDate
                         );
 
                 // Clear fields after creation
                 title.setText("");
                 date.setText("");
                 time.setText("");
+                binding.recurrenceDropdown.setText(recurLabels[0], false);
+                binding.editTextRepeatUntil.setText("");
+                binding.repeatUntilLayout.setVisibility(View.GONE);
                 Toast.makeText(getContext(), "Event created!", Toast.LENGTH_SHORT).show();
             });
         }

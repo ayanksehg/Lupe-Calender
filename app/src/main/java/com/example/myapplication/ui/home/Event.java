@@ -13,9 +13,11 @@ public class Event {
     public String location;
     public String id;
     public String circleCode; // Added to filter events by circle
+    public String recurrence;          // "NONE"/"DAILY"/"WEEKLY"/"MONTHLY"/"YEARLY"; null == NONE
+    public String recurrenceEndDate;   // "MM/dd/yyyy" inclusive, or null/empty == forever
     TextView Card;
     int importance;
-    int recurrence;
+
     public Event() {
         // Required for Firestore
     }
@@ -28,6 +30,7 @@ public class Event {
         this.time = time;
         this.location = location;
         this.circleCode = circleCode;
+        this.recurrence = "NONE";
     }
 
     public String getId(){

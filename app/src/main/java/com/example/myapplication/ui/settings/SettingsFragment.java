@@ -11,11 +11,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.myapplication.FontScaleHelper;
 import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentSettingsBinding;
+import com.example.myapplication.ui.home.EventViewModel;
+import com.example.myapplication.ui.home.ViewWindow;
+import com.example.myapplication.ui.start.Mode;
 import com.google.android.material.slider.Slider;
 
 public class SettingsFragment extends Fragment {
@@ -74,6 +78,34 @@ public class SettingsFragment extends Fragment {
                             .setPopUpTo(R.id.nav_start, true)
                             .build());
         });
+
+        EventViewModel eventViewModel =
+                new ViewModelProvider(requireActivity()).get(EventViewModel.class);
+        Mode mode = eventViewModel.getSelectedMode().getValue();
+
+        if (mode == Mode.ADMIN || mode == Mode.CREATE) {
+            binding.viewWindowCard.setVisibility(View.VISIBLE);
+
+            String[] windowLabels = getResources().getStringArray(R.array.view_window_labels);
+            String[] windowValues = getResources().getStringArray(R.array.view_window_values);
+            android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(
+                    requireContext(), android.R.layout.simple_list_item_1, windowLabels);
+            binding.viewWindowDropdown.setAdapter(adapter);
+
+            ViewWindow current = eventViewModel.getViewWindow().getValue();
+            if (current == null) current = ViewWindow.DAY;
+            for (int i = 0; i < windowValues.length; i++) {
+                if (windowValues[i].equals(current.name())) {
+                    binding.viewWindowDropdown.setText(windowLabels[i], false);
+                    break;
+                }
+            }
+
+            binding.viewWindowDropdown.setOnItemClickListener((parent, v, position, id) ->
+                    eventViewModel.setViewWindow(ViewWindow.fromString(windowValues[position])));
+        } else {
+            binding.viewWindowCard.setVisibility(View.GONE);
+        }
     }
 
     private void updatePreview(float scale) {

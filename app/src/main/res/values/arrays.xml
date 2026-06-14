@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="recurrence_labels">
+        <item>Does not repeat</item>
+        <item>Daily</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+        <item>Yearly</item>
+    </string-array>
+    <string-array name="recurrence_values">
+        <item>NONE</item>
+        <item>DAILY</item>
+        <item>WEEKLY</item>
+        <item>MONTHLY</item>
+        <item>YEARLY</item>
+    </string-array>
+    <string-array name="view_window_labels">
+        <item>By event (next one only)</item>
+        <item>By day (today)</item>
+        <item>By week (this week)</item>
+        <item>By month (this month)</item>
+    </string-array>
+    <string-array name="view_window_values">
+        <item>EVENT</item>
+        <item>DAY</item>
+        <item>WEEK</item>
+        <item>MONTH</item>
+    </string-array>
+</resources>

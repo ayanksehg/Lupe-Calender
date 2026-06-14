@@ -80,6 +80,17 @@
                     android:textSize="@dimen/text_card_body" />
             </LinearLayout>
 
+            <!-- Recurrence label (shown only for recurring events) -->
+            <TextView
+                android:id="@+id/text_recurrence"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/watch_accent"
+                android:textSize="@dimen/text_small"
+                android:textStyle="italic"
+                android:visibility="gone" />
+
         </LinearLayout>
 
         <!-- Delete button: small round icon, top-right corner -->
