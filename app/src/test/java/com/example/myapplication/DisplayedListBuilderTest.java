@@ -73,4 +73,48 @@ public class DisplayedListBuilderTest {
         List<Event> shown = DisplayedListBuilder.build(raw, new ArrayList<>(), ViewWindow.DAY, now);
         assertEquals(0, shown.size());
     }
+
+    private Event typed(String title, String date, String time, String type) {
+        Event e = new Event(title, "", date, time, "", "circle1");
+        e.type = type;
+        return e;
+    }
+
+    @Test
+    public void foodFilterKeepsFoodAndComboDropsActivity() {
+        List<Event> raw = new ArrayList<>();
+        raw.add(typed("Bingo", "06/15/2026", "10:00", "ACTIVITY"));
+        raw.add(typed("Lunch", "06/15/2026", "12:00", "FOOD"));
+        raw.add(typed("Tea + chat", "06/15/2026", "14:00", "ACTIVITY_FOOD"));
+        long now = millis(2026, 6, 15, 9, 0);
+        List<Event> food = DisplayedListBuilder.build(
+                raw, new ArrayList<>(), ViewWindow.DAY, now, true);
+        assertEquals(2, food.size());
+        assertEquals("Lunch", food.get(0).title);
+        assertEquals("Tea + chat", food.get(1).title);
+    }
+
+    @Test
+    public void eventsCalendarKeepsAllTypes() {
+        List<Event> raw = new ArrayList<>();
+        raw.add(typed("Bingo", "06/15/2026", "10:00", "ACTIVITY"));
+        raw.add(typed("Lunch", "06/15/2026", "12:00", "FOOD"));
+        long now = millis(2026, 6, 15, 9, 0);
+        List<Event> all = DisplayedListBuilder.build(
+                raw, new ArrayList<>(), ViewWindow.DAY, now, false);
+        assertEquals(2, all.size());
+    }
+
+    @Test
+    public void foodFilterAppliesBeforeEventCollapse() {
+        // Soonest overall is an ACTIVITY; food calendar must still surface the soonest FOOD.
+        List<Event> raw = new ArrayList<>();
+        raw.add(typed("Early walk", "06/15/2026", "07:00", "ACTIVITY"));
+        raw.add(typed("Brunch", "06/15/2026", "11:00", "FOOD"));
+        long now = millis(2026, 6, 15, 6, 0);
+        List<Event> food = DisplayedListBuilder.build(
+                raw, new ArrayList<>(), ViewWindow.EVENT, now, true);
+        assertEquals(1, food.size());
+        assertEquals("Brunch", food.get(0).title);
+    }
 }

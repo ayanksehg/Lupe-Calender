@@ -105,6 +105,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:hint="Type"
+                    app:endIconMode="dropdown_menu">
+
+                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                        android:id="@+id/typeDropdown"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="none"
+                        android:editable="false"
+                        android:textSize="@dimen/text_body" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.CircleEvents.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     android:hint="Repeats"
                     app:endIconMode="dropdown_menu">
 
@@ -131,6 +148,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="date"
+                        android:textSize="@dimen/text_body" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.CircleEvents.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:hint="Description (optional)">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editTextDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:minLines="2"
+                        android:gravity="top"
                         android:textSize="@dimen/text_body" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -188,7 +222,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/content_spacing"
-                    android:hint="Google Calendar ID">
+                    android:hint="Events Calendar ID">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextText"
@@ -205,6 +239,30 @@
                     android:layout_height="@dimen/button_height"
                     android:layout_marginTop="@dimen/content_spacing"
                     android:text="Link Calendar"
+                    android:textSize="@dimen/text_button" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.CircleEvents.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/content_spacing"
+                    android:hint="Food Calendar ID">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editTextFoodCalendar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textSize="@dimen/text_body" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonFoodCalendar"
+                    style="@style/Widget.CircleEvents.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginTop="@dimen/content_spacing"
+                    android:text="Link Food Calendar"
                     android:textSize="@dimen/text_button" />
 
             </LinearLayout>

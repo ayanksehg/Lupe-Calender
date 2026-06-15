@@ -50,15 +50,18 @@ public class SlideshowFragment extends Fragment {
         else{
             String[] recurLabels = getResources().getStringArray(R.array.recurrence_labels);
             String[] recurValues = getResources().getStringArray(R.array.recurrence_values);
-            android.widget.ArrayAdapter<String> recurAdapter = new android.widget.ArrayAdapter<>(
-                    requireContext(), android.R.layout.simple_list_item_1, recurLabels);
-            binding.recurrenceDropdown.setAdapter(recurAdapter);
+            binding.recurrenceDropdown.setAdapter(nonFilteringAdapter(recurLabels));
             binding.recurrenceDropdown.setText(recurLabels[0], false); // "Does not repeat"
 
             binding.recurrenceDropdown.setOnItemClickListener((parent, view, position, id) -> {
                 boolean repeats = position != 0; // index 0 == NONE
                 binding.repeatUntilLayout.setVisibility(repeats ? View.VISIBLE : View.GONE);
             });
+
+            String[] typeLabels = getResources().getStringArray(R.array.event_type_labels);
+            String[] typeValues = getResources().getStringArray(R.array.event_type_values);
+            binding.typeDropdown.setAdapter(nonFilteringAdapter(typeLabels));
+            binding.typeDropdown.setText(typeLabels[0], false); // "Activity"
 
             create.setOnClickListener(v -> {
                 String titleText = title.getText().toString();
@@ -83,9 +86,19 @@ public class SlideshowFragment extends Fragment {
                 String repeatUntil = binding.editTextRepeatUntil.getText().toString().trim();
                 if ("NONE".equals(recurrenceValue)) repeatUntil = null;
 
+                String selectedTypeLabel = binding.typeDropdown.getText().toString();
+                String typeValue = "ACTIVITY";
+                for (int i = 0; i < typeLabels.length; i++) {
+                    if (typeLabels[i].equals(selectedTypeLabel)) {
+                        typeValue = typeValues[i];
+                        break;
+                    }
+                }
+                String descriptionText = binding.editTextDescription.getText().toString().trim();
+
                 Event e = new Event(
                         titleText,
-                        "description",
+                        descriptionText,
                         dateText,
                         timeText,
                         "location",
@@ -93,6 +106,7 @@ public class SlideshowFragment extends Fragment {
                 );
                 e.recurrence = recurrenceValue;
                 e.recurrenceEndDate = (repeatUntil != null && repeatUntil.isEmpty()) ? null : repeatUntil;
+                e.type = typeValue;
 
                 eventViewModel.addEvent(e);
 
@@ -113,6 +127,8 @@ public class SlideshowFragment extends Fragment {
                 binding.recurrenceDropdown.setText(recurLabels[0], false);
                 binding.editTextRepeatUntil.setText("");
                 binding.repeatUntilLayout.setVisibility(View.GONE);
+                binding.typeDropdown.setText(typeLabels[0], false);
+                binding.editTextDescription.setText("");
                 Toast.makeText(getContext(), "Event created!", Toast.LENGTH_SHORT).show();
             });
         }
@@ -136,12 +152,33 @@ public class SlideshowFragment extends Fragment {
                     .addOnSuccessListener(aVoid -> {
                         calendarInput.setText("");
                         Toast.makeText(getContext(), "Calendar linked!", Toast.LENGTH_SHORT).show();
-                        // Immediately fetch Google Calendar events so they appear in HomeFragment
+                        // Immediately fetch Google Calendar events so they appear in CalendarFragment
                         eventViewModel.fetchGoogleCalendarEvents(calendarId);
                     })
                     .addOnFailureListener(e -> {
                         calendarInput.setError("Invalid Calendar ID");
                     });
+        });
+
+        final EditText foodCalendarInput = binding.editTextFoodCalendar;
+        final Button submitFood = binding.buttonFoodCalendar;
+        submitFood.setOnClickListener(v -> {
+            String foodCalendarId = foodCalendarInput.getText().toString().trim();
+            if (foodCalendarId.isEmpty()) {
+                foodCalendarInput.setError("Enter Calendar ID");
+                return;
+            }
+            String circleCode = eventViewModel.getCurrentCircleCode().getValue();
+            Map<String, Object> data = new HashMap<>();
+            data.put("mealCalendarId", foodCalendarId);
+            FirebaseFirestore.getInstance().collection("circles").document(circleCode)
+                    .set(data, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        foodCalendarInput.setText("");
+                        Toast.makeText(getContext(), "Food calendar linked!", Toast.LENGTH_SHORT).show();
+                        eventViewModel.fetchGoogleCalendarEvents(foodCalendarId, "FOOD");
+                    })
+                    .addOnFailureListener(e -> foodCalendarInput.setError("Invalid Calendar ID"));
         });
 
         return root;
@@ -151,6 +188,35 @@ public class SlideshowFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @androidx.annotation.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         FontScaleHelper.applyFontScale(view, requireContext());
+    }
+
+    /**
+     * ArrayAdapter for an exposed dropdown (MaterialAutoCompleteTextView) whose filter is a no-op:
+     * it always publishes the full item list. Without this, the dropdown filters by the field's
+     * current text, so once a value is selected (or restored after navigating back to this screen)
+     * reopening the menu hides every non-matching option.
+     */
+    private android.widget.ArrayAdapter<String> nonFilteringAdapter(String[] items) {
+        return new android.widget.ArrayAdapter<String>(
+                requireContext(), android.R.layout.simple_list_item_1, items) {
+            @Override
+            public android.widget.Filter getFilter() {
+                return new android.widget.Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults fr = new FilterResults();
+                        fr.values = java.util.Arrays.asList(items);
+                        fr.count = items.length;
+                        return fr;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+        };
     }
 
     private long parseDateTimeToMillis(String date, String time) {

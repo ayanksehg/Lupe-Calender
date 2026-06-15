@@ -13,14 +13,33 @@
             android:id="@+id/action_nav_home_to_nav_gallery"
             app:destination="@id/nav_gallery" />
     </fragment>
+
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.myapplication.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" >
-        <action
-            android:id="@+id/action_nav_home_to_nav_gallery"
-            app:destination="@id/nav_gallery" />
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_calendar_events"
+        android:name="com.example.myapplication.ui.home.CalendarFragment"
+        android:label="@string/menu_events"
+        tools:layout="@layout/fragment_calendar">
+        <argument
+            android:name="calendarMode"
+            android:defaultValue="EVENTS"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_calendar_food"
+        android:name="com.example.myapplication.ui.home.CalendarFragment"
+        android:label="@string/menu_food"
+        tools:layout="@layout/fragment_calendar">
+        <argument
+            android:name="calendarMode"
+            android:defaultValue="FOOD"
+            app:argType="string" />
     </fragment>
 
     <fragment

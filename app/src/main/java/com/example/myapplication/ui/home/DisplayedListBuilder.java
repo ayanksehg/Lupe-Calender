@@ -17,6 +17,15 @@ public final class DisplayedListBuilder {
 
     private DisplayedListBuilder() {}
 
+    private static List<Event> filterFood(List<Event> in, boolean foodOnly) {
+        if (!foodOnly) return in;
+        List<Event> out = new ArrayList<>();
+        for (Event e : in) {
+            if (EventType.fromString(e.type).showsInFoodCalendar()) out.add(e);
+        }
+        return out;
+    }
+
     private static long parse(String date, String time) {
         String t = ("All Day".equals(time) || time == null) ? "00:00" : time;
         try {
@@ -39,6 +48,7 @@ public final class DisplayedListBuilder {
         e.id = series.id;
         e.recurrence = series.recurrence;
         e.recurrenceEndDate = series.recurrenceEndDate;
+        e.type = series.type;
         return e;
     }
 
@@ -62,6 +72,13 @@ public final class DisplayedListBuilder {
 
     public static List<Event> build(List<Event> rawEvents, List<Event> googleEvents,
                                     ViewWindow window, long now) {
+        return build(rawEvents, googleEvents, window, now, false);
+    }
+
+    public static List<Event> build(List<Event> rawEventsIn, List<Event> googleEventsIn,
+                                    ViewWindow window, long now, boolean foodOnly) {
+        List<Event> rawEvents = filterFood(rawEventsIn, foodOnly);
+        List<Event> googleEvents = filterFood(googleEventsIn, foodOnly);
         List<Event> result = new ArrayList<>();
         long windowEnd = window.windowEnd(now);
 

@@ -13,6 +13,7 @@ public class Event {
     public String location;
     public String id;
     public String circleCode; // Added to filter events by circle
+    public String type;        // "ACTIVITY"(default) / "FOOD" / "ACTIVITY_FOOD"; null == ACTIVITY
     public String recurrence;          // "NONE"/"DAILY"/"WEEKLY"/"MONTHLY"/"YEARLY"; null == NONE
     public String recurrenceEndDate;   // "MM/dd/yyyy" inclusive, or null/empty == forever
     TextView Card;
@@ -31,6 +32,7 @@ public class Event {
         this.location = location;
         this.circleCode = circleCode;
         this.recurrence = "NONE";
+        this.type = "ACTIVITY";
     }
 
     public String getId(){

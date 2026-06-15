@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/content_spacing"
@@ -17,6 +18,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="@dimen/card_padding">
+
+            <!-- Type badge: top-left, in normal flow so it never overlaps the title at any font scale.
+                 marginEnd keeps long labels clear of the top-right delete/edit buttons. -->
+            <TextView
+                android:id="@+id/text_type_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="44dp"
+                android:layout_marginBottom="8dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="2dp"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_small"
+                android:textStyle="bold"
+                tools:text="Food" />
 
             <!-- Title -->
             <TextView
@@ -91,6 +107,16 @@
                 android:textStyle="italic"
                 android:visibility="gone" />
 
+            <!-- Description (optional; truncated past ~120 chars) -->
+            <TextView
+                android:id="@+id/text_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_card_body"
+                android:visibility="gone" />
+
         </LinearLayout>
 
         <!-- Delete button: small round icon, top-right corner -->
@@ -113,6 +139,28 @@
             app:backgroundTint="#33FFFFFF"
             app:cornerRadius="18dp"
             app:iconPadding="0dp"
+            app:rippleColor="#55FFFFFF" />
+
+        <!-- Edit button: admin only, below delete -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEdit"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="52dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Edit event"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:insetLeft="0dp"
+            android:insetRight="0dp"
+            android:text="✎"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:backgroundTint="#33FFFFFF"
+            app:cornerRadius="18dp"
             app:rippleColor="#55FFFFFF" />
 
     </FrameLayout>

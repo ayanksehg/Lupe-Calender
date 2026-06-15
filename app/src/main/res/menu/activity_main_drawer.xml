@@ -8,10 +8,14 @@
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_event_home"
             android:title="@string/menu_home" />
-<!--        <item-->
-<!--            android:id="@+id/nav_gallery"-->
-<!--            android:icon="@drawable/ic_menu_gallery"-->
-<!--            android:title="@string/menu_gallery" />-->
+        <item
+            android:id="@+id/nav_calendar_events"
+            android:icon="@drawable/ic_event_home"
+            android:title="@string/menu_events" />
+        <item
+            android:id="@+id/nav_calendar_food"
+            android:icon="@drawable/ic_event_home"
+            android:title="@string/menu_food" />
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_event_create"

@@ -48,6 +48,7 @@ public class StartFragment extends Fragment {
         if (savedCode != null && savedMode != null) {
             eventViewModel.setCurrentCircleCode(savedCode);
             eventViewModel.setSelectedMode(Mode.valueOf(savedMode));
+            eventViewModel.setUserName(prefs.getString("saved_name", ""));
             binding = StartPageBinding.inflate(inflater, container, false);
             binding.getRoot().post(() -> {
                 if (isAdded()) {
@@ -79,6 +80,7 @@ public class StartFragment extends Fragment {
         eventViewModel.setSelectedMode(mode);
         resetButtonAppearance();
         binding.groupLayout.setVisibility(View.VISIBLE);
+        binding.nameLayout.setVisibility(View.VISIBLE);
         binding.adminLayout.setVisibility(View.GONE);
         binding.buttonEnter.setVisibility(View.VISIBLE);
         int selectedColor = ContextCompat.getColor(requireContext(), R.color.watch_blue_dark);
@@ -109,7 +111,14 @@ public class StartFragment extends Fragment {
     private void confirmAction(View view) {
         String groupCode = binding.Group.getText().toString().trim();
         String adminCode = binding.Admin.getText().toString().trim();
+        String name = binding.Name.getText().toString().trim();
 
+        if (name.isEmpty()) {
+            binding.nameLayout.setError("Please enter your name");
+            return;
+        } else {
+            binding.nameLayout.setError(null);
+        }
         if (groupCode.isEmpty()) {
             binding.groupLayout.setError("Please enter a code");
             return;
@@ -154,12 +163,14 @@ public class StartFragment extends Fragment {
 
         // Set the current circle code in the ViewModel before navigating
         eventViewModel.setCurrentCircleCode(groupCode);
+        eventViewModel.setUserName(name);
 
         // Save session for auto-login
         SharedPreferences savePrefs = requireContext().getSharedPreferences("circle_events_prefs", Context.MODE_PRIVATE);
         savePrefs.edit()
                 .putString("saved_circle_code", groupCode)
                 .putString("saved_mode", currentMode.name())
+                .putString("saved_name", name)
                 .apply();
 
         Navigation.findNavController(view)

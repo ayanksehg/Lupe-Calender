@@ -1,78 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/watch_surface"
-    tools:context=".ui.home.HomeFragment"
-    tools:ignore="MissingClass">
+    android:fillViewport="true"
+    tools:context=".ui.home.HomeFragment">
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="32dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="32dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/text_welcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingHorizontal="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/section_spacing"
-            android:paddingBottom="@dimen/section_spacing">
+            android:text="Welcome!"
+            android:textAlignment="center"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="@dimen/text_heading"
+            android:textStyle="bold" />
 
-            <!-- Header -->
-            <TextView
-                android:id="@+id/text_home"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Upcoming Events"
-                android:textAlignment="viewStart"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="@dimen/text_title"
-                android:textStyle="bold" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_events"
+            style="@style/Widget.CircleEvents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="40dp"
+            android:text="Events"
+            android:textSize="@dimen/text_button"
+            app:icon="@drawable/ic_event_home"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp" />
 
-            <View
-                android:layout_width="60dp"
-                android:layout_height="3dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="@dimen/section_spacing"
-                android:background="@color/watch_blue" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_food"
+            style="@style/Widget.CircleEvents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="24dp"
+            android:text="Food"
+            android:textSize="@dimen/text_button"
+            app:backgroundTint="@color/food_red"
+            app:icon="@drawable/ic_event_home"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp" />
 
-            <!-- Event cards container -->
-            <LinearLayout
-                android:id="@+id/layout_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <!-- Empty state -->
-            <LinearLayout
-                android:id="@+id/empty_state"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:paddingTop="48dp"
-                android:visibility="gone">
-
-                <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:alpha="0.4"
-                    android:contentDescription="No events"
-                    app:srcCompat="@drawable/ic_event_home"
-                    app:tint="@color/watch_blue" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="No events yet"
-                    android:textColor="@color/watch_text_secondary"
-                    android:textSize="@dimen/text_body" />
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+    </LinearLayout>
+</ScrollView>

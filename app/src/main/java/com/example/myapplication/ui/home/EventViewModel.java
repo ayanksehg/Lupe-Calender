@@ -36,7 +36,10 @@ public class EventViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isRefreshing = new MutableLiveData<>(false);
     private final MutableLiveData<List<Event>> rawEvents = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<ViewWindow> viewWindow = new MutableLiveData<>(ViewWindow.DAY);
-    private List<Event> rawGoogleEvents = new ArrayList<>();
+    private boolean foodOnly = false;
+    private String userName = "";
+    private List<Event> rawGoogleActivity = new ArrayList<>();
+    private List<Event> rawGoogleFood = new ArrayList<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration listenerRegistration;
 
@@ -57,7 +60,11 @@ public class EventViewModel extends ViewModel {
         if (raw == null) raw = new ArrayList<>();
         ViewWindow window = viewWindow.getValue();
         if (window == null) window = ViewWindow.DAY;
-        events.postValue(DisplayedListBuilder.build(raw, rawGoogleEvents, window, System.currentTimeMillis()));
+        List<Event> google = new ArrayList<>();
+        google.addAll(rawGoogleActivity);
+        google.addAll(rawGoogleFood);
+        events.postValue(DisplayedListBuilder.build(
+                raw, google, window, System.currentTimeMillis(), foodOnly));
     }
 
     public LiveData<Boolean> getIsRefreshing() {
@@ -90,7 +97,8 @@ public class EventViewModel extends ViewModel {
 
         if (circleCode == null || circleCode.isEmpty()) {
             rawEvents.setValue(new ArrayList<>());
-            rawGoogleEvents = new ArrayList<>();
+            rawGoogleActivity = new ArrayList<>();
+            rawGoogleFood = new ArrayList<>();
             events.setValue(new ArrayList<>());
             return;
         }
@@ -136,6 +144,10 @@ public class EventViewModel extends ViewModel {
     }
 
     public void fetchGoogleCalendarEvents(String calendarId) {
+        fetchGoogleCalendarEvents(calendarId, "ACTIVITY");
+    }
+
+    public void fetchGoogleCalendarEvents(String calendarId, String type) {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://www.googleapis.com/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -162,10 +174,14 @@ public class EventViewModel extends ViewModel {
                             List<CalendarEvent> items = response.body().items;
                             Log.d("CalendarAPI", "Response body items count: " + (items != null ? items.size() : "null"));
                             
-                            List<Event> googleEvents = parseCalendarItems(items);
+                            List<Event> googleEvents = parseCalendarItems(items, type);
                             Log.d("CalendarAPI", "Parsed " + googleEvents.size() + " Google Calendar events.");
 
-                            rawGoogleEvents = googleEvents;
+                            if ("FOOD".equals(type)) {
+                                rawGoogleFood = googleEvents;
+                            } else {
+                                rawGoogleActivity = googleEvents;
+                            }
                             rebuildDisplayedList();
                             isRefreshing.postValue(false);
                         } else {
@@ -194,17 +210,31 @@ public class EventViewModel extends ViewModel {
                         viewWindow.setValue(ViewWindow.fromString(doc.getString("viewWindow")));
                         rebuildDisplayedList();
                     }
-                    if (doc.exists() && doc.getString("calendarId") != null) {
-                        String calendarId = doc.getString("calendarId");
-                        fetchGoogleCalendarEvents(calendarId);
+                    String calendarId = doc.exists() ? doc.getString("calendarId") : null;
+                    String mealCalendarId = doc.exists() ? doc.getString("mealCalendarId") : null;
+
+                    boolean any = false;
+                    if (calendarId != null && !calendarId.isEmpty()) {
+                        fetchGoogleCalendarEvents(calendarId, "ACTIVITY");
+                        any = true;
                     } else {
+                        rawGoogleActivity = new ArrayList<>();
+                    }
+                    if (mealCalendarId != null && !mealCalendarId.isEmpty()) {
+                        fetchGoogleCalendarEvents(mealCalendarId, "FOOD");
+                        any = true;
+                    } else {
+                        rawGoogleFood = new ArrayList<>();
+                    }
+                    if (!any) {
+                        rebuildDisplayedList();
                         isRefreshing.postValue(false);
                     }
                 })
                 .addOnFailureListener(e -> isRefreshing.postValue(false));
     }
 
-    private List<Event> parseCalendarItems(List<CalendarEvent> items) {
+    private List<Event> parseCalendarItems(List<CalendarEvent> items, String type) {
         List<Event> events = new ArrayList<>();
         if (items == null) return events;
 
@@ -232,14 +262,16 @@ public class EventViewModel extends ViewModel {
                 String date = outputDate.format(start);
                 String time = allDay ? "All Day" : outputTime.format(start);
 
-                events.add(new Event(
+                Event ge = new Event(
                         ce.summary != null ? ce.summary : "No Title",
                         ce.description != null ? ce.description : "",
                         date,
                         time,
                         ce.location != null ? ce.location : "",
                         "google_calendar"
-                ));
+                );
+                ge.type = type;
+                events.add(ge);
             } catch (Exception e) {
                 Log.e("CalendarAPI", "Error parsing calendar item: " + ce.summary, e);
             }
@@ -291,6 +323,29 @@ public class EventViewModel extends ViewModel {
                     .set(data, com.google.firebase.firestore.SetOptions.merge());
         }
     }
+    public void setCalendarFilter(boolean foodOnly) {
+        this.foodOnly = foodOnly;
+        rebuildDisplayedList();
+    }
+
+    public void setUserName(String name) {
+        this.userName = name == null ? "" : name;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    /** Admin edit: patch type + description on an existing Firestore event doc. */
+    public void updateEvent(String eventId, String type, String description) {
+        if (eventId == null || eventId.isEmpty()) return;
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("type", type);
+        data.put("description", description == null ? "" : description);
+        db.collection("events").document(eventId)
+                .set(data, com.google.firebase.firestore.SetOptions.merge());
+    }
+
     public LiveData<String> getCircleCode(){
         return currentCircleCode;
     }

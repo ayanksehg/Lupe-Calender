@@ -37,4 +37,8 @@
     <color name="watch_dark_surface">#0F1C2E</color>
     <color name="watch_dark_card">#1A2B3D</color>
     <color name="watch_dark_input">#1E3450</color>
+
+    <!-- Event type card colors -->
+    <color name="food_red">#A8423D</color>
+    <color name="activity_food_purple">#6D4C91</color>
 </resources>

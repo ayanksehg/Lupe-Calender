@@ -47,11 +47,12 @@ public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
+    private EventViewModel eventViewModel;
     FirebaseFirestore firestore;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EventViewModel eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
+        eventViewModel = new ViewModelProvider(this).get(EventViewModel.class);
         firestore = FirebaseFirestore.getInstance();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow) //gallery fragment is commented out in activity_main_drawer.xml
+                R.id.nav_home, R.id.nav_calendar_events, R.id.nav_calendar_food, R.id.nav_slideshow)
                 .setOpenableLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
@@ -71,12 +72,17 @@ public class MainActivity extends AppCompatActivity {
         navController.addOnDestinationChangedListener(
                 (controller, destination, arguments) -> {
                     Mode mode = eventViewModel.getSelectedMode().getValue();
-                    if (destination.getId() == R.id.nav_home && mode == Mode.JOIN) {
+                    int id = destination.getId();
+                    boolean isCalendar = id == R.id.nav_calendar_events || id == R.id.nav_calendar_food;
+                    boolean isMenu = id == R.id.nav_home;
+
+                    if (mode == Mode.JOIN && (isMenu || isCalendar)) {
                         drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                         navigationView.setVisibility(View.GONE);
                         if (getSupportActionBar() != null) {
-                            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                            getSupportActionBar().setHomeButtonEnabled(false);
+                            // Up only on the calendar screens (to return to the menu); none on the menu itself.
+                            getSupportActionBar().setDisplayHomeAsUpEnabled(isCalendar);
+                            getSupportActionBar().setHomeButtonEnabled(isCalendar);
                         }
                     } else {
                         drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
@@ -164,8 +170,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public  boolean onSupportNavigateUp() {
+    public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        Mode mode = eventViewModel.getSelectedMode().getValue();
+        if (mode == Mode.JOIN) {
+            // Calendar screens are top-level in the AppBarConfiguration, so navigateUp would open the
+            // (locked) drawer. In JOIN we pop back to the menu instead.
+            return navController.popBackStack() || super.onSupportNavigateUp();
+        }
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }

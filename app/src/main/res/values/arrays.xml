@@ -26,4 +26,14 @@
         <item>WEEK</item>
         <item>MONTH</item>
     </string-array>
+    <string-array name="event_type_labels">
+        <item>Activity</item>
+        <item>Food</item>
+        <item>Activity with food</item>
+    </string-array>
+    <string-array name="event_type_values">
+        <item>ACTIVITY</item>
+        <item>FOOD</item>
+        <item>ACTIVITY_FOOD</item>
+    </string-array>
 </resources>
