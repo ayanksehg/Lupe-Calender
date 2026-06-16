@@ -180,7 +180,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Calendar linking section -->
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -218,6 +218,7 @@
                     android:textSize="@dimen/text_small" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilEventsCalendar"
                     style="@style/Widget.CircleEvents.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -242,6 +243,7 @@
                     android:textSize="@dimen/text_button" />
 
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilFoodCalendar"
                     style="@style/Widget.CircleEvents.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -264,6 +266,16 @@
                     android:layout_marginTop="@dimen/content_spacing"
                     android:text="Link Food Calendar"
                     android:textSize="@dimen/text_button" />
+
+
+                <TextView
+                    android:id="@+id/linkedCalendarStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/content_spacing"
+                    android:textColor="@color/watch_text_secondary"
+                    android:textSize="@dimen/text_small"
+                    tools:text="Currently linked\nEvents: example@group.calendar.google.com" />
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

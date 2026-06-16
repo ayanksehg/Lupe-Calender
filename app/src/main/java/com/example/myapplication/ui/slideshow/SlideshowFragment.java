@@ -1,11 +1,13 @@
 package com.example.myapplication.ui.slideshow;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,6 +21,7 @@ import com.example.myapplication.databinding.FragmentSlideshowBinding;
 import com.example.myapplication.ui.home.Event;
 import com.example.myapplication.ui.home.EventViewModel;
 import com.example.myapplication.ui.start.Mode;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -137,40 +140,69 @@ public class SlideshowFragment extends Fragment {
 
 
         final EditText calendarInput = binding.editTextText;
+        final TextInputLayout calendarInputLayout = binding.tilEventsCalendar;
         final Button submit = binding.button;
 
+        // Clear the error as soon as the user starts typing again.
+        calendarInput.setOnFocusChangeListener((v, hasFocus) -> calendarInputLayout.setError(null));
+
         submit.setOnClickListener(v -> {
+            calendarInputLayout.setError(null);
             String calendarId = calendarInput.getText().toString().trim();
 
-            if(calendarId.isEmpty()){
-                calendarInput.setError("Enter Calendar ID");
+            if (calendarId.isEmpty()) {
+                calendarInputLayout.setError("Enter a Calendar ID");
                 return;
             }
 
-            String circleCode=eventViewModel.getCurrentCircleCode().getValue();
+            String circleCode = eventViewModel.getCurrentCircleCode().getValue();
+            if (circleCode == null || circleCode.isEmpty()) {
+                Toast.makeText(getContext(),
+                        "No circle is active — re-join your circle and try again.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+
             Map<String, Object> data = new HashMap<>();
             data.put("calendarId", calendarId);
-            FirebaseFirestore.getInstance().collection("circles").document(circleCode).set(data, SetOptions.merge())
+            FirebaseFirestore.getInstance().collection("circles").document(circleCode)
+                    .set(data, SetOptions.merge())
                     .addOnSuccessListener(aVoid -> {
                         calendarInput.setText("");
                         Toast.makeText(getContext(), "Calendar linked!", Toast.LENGTH_SHORT).show();
-                        // Immediately fetch Google Calendar events so they appear in CalendarFragment
+                        // Immediately fetch Google Calendar events so they appear on Home.
                         eventViewModel.fetchGoogleCalendarEvents(calendarId);
+                        refreshLinkedCalendarStatus(circleCode);
                     })
                     .addOnFailureListener(e -> {
-                        calendarInput.setError("Invalid Calendar ID");
+                        Log.e("LinkCalendar", "Failed to save calendarId for " + circleCode, e);
+                        calendarInputLayout.setError("Couldn't save — check your connection");
+                        Toast.makeText(getContext(),
+                                "Couldn't link calendar: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
                     });
         });
 
         final EditText foodCalendarInput = binding.editTextFoodCalendar;
+        final TextInputLayout foodCalendarInputLayout = binding.tilFoodCalendar;
         final Button submitFood = binding.buttonFoodCalendar;
+
+        foodCalendarInput.setOnFocusChangeListener((v, hasFocus) -> foodCalendarInputLayout.setError(null));
+
         submitFood.setOnClickListener(v -> {
+            foodCalendarInputLayout.setError(null);
             String foodCalendarId = foodCalendarInput.getText().toString().trim();
             if (foodCalendarId.isEmpty()) {
-                foodCalendarInput.setError("Enter Calendar ID");
+                foodCalendarInputLayout.setError("Enter a Calendar ID");
                 return;
             }
             String circleCode = eventViewModel.getCurrentCircleCode().getValue();
+            if (circleCode == null || circleCode.isEmpty()) {
+                Toast.makeText(getContext(),
+                        "No circle is active — re-join your circle and try again.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
             Map<String, Object> data = new HashMap<>();
             data.put("mealCalendarId", foodCalendarId);
             FirebaseFirestore.getInstance().collection("circles").document(circleCode)
@@ -179,11 +211,63 @@ public class SlideshowFragment extends Fragment {
                         foodCalendarInput.setText("");
                         Toast.makeText(getContext(), "Food calendar linked!", Toast.LENGTH_SHORT).show();
                         eventViewModel.fetchGoogleCalendarEvents(foodCalendarId, "FOOD");
+                        refreshLinkedCalendarStatus(circleCode);
                     })
-                    .addOnFailureListener(e -> foodCalendarInput.setError("Invalid Calendar ID"));
+                    .addOnFailureListener(e -> {
+                        Log.e("LinkCalendar", "Failed to save mealCalendarId for " + circleCode, e);
+                        foodCalendarInputLayout.setError("Couldn't save — check your connection");
+                        Toast.makeText(getContext(),
+                                "Couldn't link food calendar: " + e.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                    });
         });
 
+        // Show whatever is currently linked for this circle, below the form.
+        refreshLinkedCalendarStatus(eventViewModel.getCurrentCircleCode().getValue());
+
         return root;
+    }
+
+    /**
+     * Reads the circle's linked Google Calendar IDs from Firestore and renders them in the
+     * status TextView below the link form. Safe to call after the view is gone (no-ops).
+     */
+    private void refreshLinkedCalendarStatus(String circleCode) {
+        if (binding == null) return;
+        final TextView status = binding.linkedCalendarStatus;
+
+        if (circleCode == null || circleCode.isEmpty()) {
+            status.setText("No calendar linked yet.");
+            return;
+        }
+
+        FirebaseFirestore.getInstance().collection("circles").document(circleCode).get()
+                .addOnSuccessListener(doc -> {
+                    if (binding == null) return;
+                    String calendarId = doc.exists() ? doc.getString("calendarId") : null;
+                    String mealCalendarId = doc.exists() ? doc.getString("mealCalendarId") : null;
+
+                    StringBuilder sb = new StringBuilder();
+                    if (calendarId != null && !calendarId.isEmpty()) {
+                        sb.append("Events: ").append(calendarId);
+                    }
+                    if (mealCalendarId != null && !mealCalendarId.isEmpty()) {
+                        if (sb.length() > 0) sb.append("\n");
+                        sb.append("Food: ").append(mealCalendarId);
+                    }
+
+                    if (sb.length() == 0) {
+                        status.setText("No calendar linked yet.");
+                    } else {
+                        status.setText("Currently linked\n" + sb);
+                    }
+                    FontScaleHelper.applyFontScale(status, requireContext());
+                })
+                .addOnFailureListener(e -> {
+                    if (binding != null) {
+                        binding.linkedCalendarStatus.setText("Couldn't load linked calendar.");
+                    }
+                });
     }
 
     @Override
