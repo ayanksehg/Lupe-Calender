@@ -36,6 +36,7 @@ public class EventViewModel extends ViewModel {
     private final MutableLiveData<Boolean> isRefreshing = new MutableLiveData<>(false);
     private final MutableLiveData<List<Event>> rawEvents = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<ViewWindow> viewWindow = new MutableLiveData<>(ViewWindow.DAY);
+    private final MutableLiveData<Integer> notificationLeadMinutes = new MutableLiveData<>(0);
     private boolean foodOnly = false;
     private String userName = "";
     private List<Event> rawGoogleActivity = new ArrayList<>();
@@ -53,6 +54,16 @@ public class EventViewModel extends ViewModel {
 
     public LiveData<ViewWindow> getViewWindow() {
         return viewWindow;
+    }
+
+    public LiveData<Integer> getNotificationLeadMinutes() {
+        return notificationLeadMinutes;
+    }
+
+    /** Synchronous accessor for the scheduling call site (SlideshowFragment). */
+    public int getNotificationLeadMinutesValue() {
+        Integer v = notificationLeadMinutes.getValue();
+        return v == null ? 0 : v;
     }
 
     private void rebuildDisplayedList() {
@@ -210,6 +221,9 @@ public class EventViewModel extends ViewModel {
                         viewWindow.setValue(ViewWindow.fromString(doc.getString("viewWindow")));
                         rebuildDisplayedList();
                     }
+                    if (doc.exists() && doc.getLong("notificationLeadMinutes") != null) {
+                        notificationLeadMinutes.setValue(doc.getLong("notificationLeadMinutes").intValue());
+                    }
                     String calendarId = doc.exists() ? doc.getString("calendarId") : null;
                     String mealCalendarId = doc.exists() ? doc.getString("mealCalendarId") : null;
 
@@ -319,6 +333,16 @@ public class EventViewModel extends ViewModel {
         if (code != null && !code.isEmpty()) {
             java.util.Map<String, Object> data = new java.util.HashMap<>();
             data.put("viewWindow", window.name());
+            db.collection("circles").document(code)
+                    .set(data, com.google.firebase.firestore.SetOptions.merge());
+        }
+    }
+    public void setNotificationLeadMinutes(int minutes) {
+        notificationLeadMinutes.setValue(minutes);
+        String code = currentCircleCode.getValue();
+        if (code != null && !code.isEmpty()) {
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            data.put("notificationLeadMinutes", minutes);
             db.collection("circles").document(code)
                     .set(data, com.google.firebase.firestore.SetOptions.merge());
         }

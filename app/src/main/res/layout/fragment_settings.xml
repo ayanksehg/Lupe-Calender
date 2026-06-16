@@ -195,6 +195,73 @@
         </androidx.cardview.widget.CardView>
 
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/notification_lead_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_spacing"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/watch_surface_card"
+            app:cardCornerRadius="@dimen/card_corner_radius"
+            app:cardElevation="@dimen/card_elevation">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/card_padding">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Reminder Lead Time"
+                        android:textColor="@color/watch_text_primary"
+                        android:textSize="@dimen/text_card_title"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/text_lead_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="At event time"
+                        android:textColor="@color/watch_blue_dark"
+                        android:textSize="@dimen/text_body"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="How far before each event everyone in this circle gets the reminder notification."
+                    android:textColor="@color/watch_text_secondary"
+                    android:textSize="@dimen/text_small" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/slider_lead_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:valueFrom="0"
+                    android:valueTo="60"
+                    android:stepSize="5"
+                    android:value="0"
+                    app:trackColorActive="@color/watch_blue_dark"
+                    app:trackColorInactive="@color/watch_divider"
+                    app:thumbColor="@color/watch_blue_dark"
+                    app:tickVisible="false" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/button_logout"
             style="@style/Widget.CircleEvents.Button.Outlined"

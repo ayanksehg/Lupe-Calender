@@ -89,10 +89,11 @@ public class CalendarFragment extends Fragment {
                 long next = RecurrenceExpander.nextOccurrenceAfter(
                         e.date, e.time, e.recurrence, e.recurrenceEndDate, now);
                 if (next <= 0) continue;
+                int leadMinutes = eventViewModel.getNotificationLeadMinutesValue();
                 ((MainActivity) requireActivity()).scheduleEventNotification(
-                        next, e.title, e.getId().hashCode(), e.getId(),
+                        next - leadMinutes * 60_000L, e.title, e.getId().hashCode(), e.getId(),
                         e.recurrence == null ? "NONE" : e.recurrence,
-                        e.recurrenceEndDate);
+                        e.recurrenceEndDate, leadMinutes);
             }
         });
 

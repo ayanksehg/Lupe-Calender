@@ -85,6 +85,27 @@ public class SettingsFragment extends Fragment {
 
         if (mode == Mode.ADMIN || mode == Mode.CREATE) {
             binding.viewWindowCard.setVisibility(View.VISIBLE);
+            binding.notificationLeadCard.setVisibility(View.VISIBLE);
+
+            Integer leadValue = eventViewModel.getNotificationLeadMinutes().getValue();
+            int leadMinutes = leadValue == null ? 0 : leadValue;
+            binding.sliderLeadTime.setValue(leadMinutes);
+            binding.textLeadValue.setText(formatLeadTime(leadMinutes));
+
+            // Live label as the slider moves
+            binding.sliderLeadTime.addOnChangeListener((slider, value, fromUser) ->
+                    binding.textLeadValue.setText(formatLeadTime((int) value)));
+
+            // Persist only on release
+            binding.sliderLeadTime.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+                @Override
+                public void onStartTrackingTouch(@NonNull Slider slider) {}
+
+                @Override
+                public void onStopTrackingTouch(@NonNull Slider slider) {
+                    eventViewModel.setNotificationLeadMinutes((int) slider.getValue());
+                }
+            });
 
             String[] windowLabels = getResources().getStringArray(R.array.view_window_labels);
             String[] windowValues = getResources().getStringArray(R.array.view_window_values);
@@ -105,7 +126,13 @@ public class SettingsFragment extends Fragment {
                     eventViewModel.setViewWindow(ViewWindow.fromString(windowValues[position])));
         } else {
             binding.viewWindowCard.setVisibility(View.GONE);
+            binding.notificationLeadCard.setVisibility(View.GONE);
         }
+    }
+
+    private String formatLeadTime(int minutes) {
+        if (minutes <= 0) return "At event time";
+        return minutes + (minutes == 1 ? " minute before" : " minutes before");
     }
 
     private void updatePreview(float scale) {

@@ -131,11 +131,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void scheduleEventNotification(long time, String title, int requestCode, String eventId) {
-        scheduleEventNotification(time, title, requestCode, eventId, "NONE", null);
+        scheduleEventNotification(time, title, requestCode, eventId, "NONE", null, 0);
     }
 
     public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
                                           String recurrence, String recurrenceEndDate) {
+        scheduleEventNotification(time, title, requestCode, eventId, recurrence, recurrenceEndDate, 0);
+    }
+
+    public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
+                                          String recurrence, String recurrenceEndDate, int leadMinutes) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("title", title);
@@ -143,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("recurrence", recurrence);
         intent.putExtra("recurrence_end_date", recurrenceEndDate);
         intent.putExtra("request_code", requestCode);
+        intent.putExtra("lead_minutes", leadMinutes);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,

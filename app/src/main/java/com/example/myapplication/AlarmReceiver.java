@@ -24,11 +24,15 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String title = intent.getStringExtra("title");
+        int leadMinutes = intent.getIntExtra("lead_minutes", 0);
+        String contentText = title + (leadMinutes > 0
+                ? " happens in " + leadMinutes + (leadMinutes == 1 ? " minute" : " minutes")
+                : " is starting now");
         Notification notification =
                 new NotificationCompat.Builder(context, "event_reminders")
                         .setSmallIcon(R.drawable.ic_launcher_foreground)
                         .setContentTitle("Event Reminder")
-                        .setContentText(title != null ? title : "An event is happening now")
+                        .setContentText(contentText)
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         .setAutoCancel(true)
                         .build();

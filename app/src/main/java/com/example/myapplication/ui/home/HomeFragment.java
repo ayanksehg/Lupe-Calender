@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.home;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -15,11 +17,18 @@ import com.example.myapplication.FontScaleHelper;
 import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentHomeBinding;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Calendar;
+import java.util.Locale;
+
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private EventViewModel eventViewModel;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -28,8 +37,26 @@ public class HomeFragment extends Fragment {
 
         String circle = eventViewModel.getCurrentCircleCode().getValue();
         String name = eventViewModel.getUserName();
-        binding.textWelcome.setText("Welcome to " + (circle == null ? "" : circle)
-                + (name == null || name.isEmpty() ? "" : " " + name) + "!");
+
+
+        String greeting = "Good Morning";
+        LocalTime currentTime = LocalTime.now();
+        LocalTime fiveAM = LocalTime.of(5, 0);
+        LocalTime twelveAM = LocalTime.of(0, 0);
+        LocalTime ninePM = LocalTime.of(21, 30);
+        LocalTime fivePM = LocalTime.of(17, 0);
+
+        if (currentTime.isAfter(fiveAM) && currentTime.isBefore(twelveAM)) greeting = "Good Morning";
+        else if (currentTime.isAfter(twelveAM) && currentTime.isBefore(ninePM)) greeting = "Good Afternoon";
+        else if (currentTime.isBefore(ninePM) && currentTime.isAfter(fivePM)) greeting = "Good Evening";
+        else greeting = "Good Night";
+
+        binding.textWelcome.setText(greeting + (name == null || name.isEmpty() ? "" : " " + name)+ "! Welcome to " + (circle == null ? "" : circle));
+
+
+
+
+
 
         binding.buttonEvents.setOnClickListener(v ->
                 Navigation.findNavController(v).navigate(R.id.nav_calendar_events));

@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 public class FontScaleHelper {
 
-    private static final String PREFS_NAME = "circle_events_prefs";
+    private static final String PREFS_NAME = "lupe_prefs";
     private static final String KEY_FONT_SCALE = "font_scale";
     private static final float DEFAULT_SCALE = 1.2f;
     private static final int TAG_ORIGINAL_SIZE = "original_text_size".hashCode();

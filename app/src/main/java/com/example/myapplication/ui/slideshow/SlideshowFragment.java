@@ -110,14 +110,16 @@ public class SlideshowFragment extends Fragment {
 
                 eventViewModel.addEvent(e);
 
+                int leadMinutes = eventViewModel.getNotificationLeadMinutesValue();
                 ((MainActivity) requireActivity())
                         .scheduleEventNotification(
-                                eventTime,
+                                eventTime - leadMinutes * 60_000L,
                                 titleText,
                                 e.getId().hashCode(),
                                 e.getId(),
                                 e.recurrence,
-                                e.recurrenceEndDate
+                                e.recurrenceEndDate,
+                                leadMinutes
                         );
 
                 // Clear fields after creation
