@@ -32,6 +32,7 @@
     <color name="watch_card_header">#2C5F8A</color>
     <color name="watch_error">#C62828</color>
     <color name="watch_success">#2E7D32</color>
+    <color name = "Goldenrod"> #DAA520</color>
 
     <!-- Dark theme variants -->
     <color name="watch_dark_surface">#0F1C2E</color>

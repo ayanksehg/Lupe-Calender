@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/nav_start"
         android:name="com.example.myapplication.ui.start.StartFragment"
-        android:label="Start Page"
+        android:label="Login"
         tools:layout="@layout/start_page" >
         <action
             android:id="@+id/action_nav_home_to_nav_gallery"
@@ -39,6 +39,17 @@
         <argument
             android:name="calendarMode"
             android:defaultValue="FOOD"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_calendar_all"
+        android:name="com.example.myapplication.ui.home.CalendarFragment"
+        android:label="@string/menu_all"
+        tools:layout="@layout/fragment_calendar">
+        <argument
+            android:name="calendarMode"
+            android:defaultValue="ALL"
             app:argType="string" />
     </fragment>
 

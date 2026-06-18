@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
+import com.example.myapplication.FavoritesHelper;
 import com.example.myapplication.FontScaleHelper;
 import com.example.myapplication.R;
 import com.example.myapplication.databinding.FragmentSettingsBinding;
@@ -63,6 +64,12 @@ public class SettingsFragment extends Fragment {
                 FontScaleHelper.saveFontScale(requireContext(), slider.getValue());
             }
         });
+
+        // Notify-only-favorites (all users, local per device)
+        binding.switchNotifyFavorites.setChecked(
+                FavoritesHelper.isNotifyOnlyFavorites(requireContext()));
+        binding.switchNotifyFavorites.setOnCheckedChangeListener((b, checked) ->
+                FavoritesHelper.setNotifyOnlyFavorites(requireContext(), checked));
 
         // Logout button
         binding.buttonLogout.setOnClickListener(v -> {

@@ -17,11 +17,11 @@ public final class DisplayedListBuilder {
 
     private DisplayedListBuilder() {}
 
-    private static List<Event> filterFood(List<Event> in, boolean foodOnly) {
-        if (!foodOnly) return in;
+    private static List<Event> filterByCalendar(List<Event> in, CalendarFilter filter) {
+        if (filter == CalendarFilter.ALL) return in;
         List<Event> out = new ArrayList<>();
         for (Event e : in) {
-            if (EventType.fromString(e.type).showsInFoodCalendar()) out.add(e);
+            if (filter.shows(EventType.fromString(e.type))) out.add(e);
         }
         return out;
     }
@@ -41,6 +41,11 @@ public final class DisplayedListBuilder {
         return new SimpleDateFormat(D, Locale.getDefault()).format(new Date(millis));
     }
 
+    private static java.util.Set<String> excludedSet(Event e) {
+        return (e.excludedDates == null || e.excludedDates.isEmpty())
+                ? null : new java.util.HashSet<>(e.excludedDates);
+    }
+
     /** Display-only copy of a series at a specific occurrence date (keeps series id). */
     private static Event occurrenceCopy(Event series, String occurrenceDate) {
         Event e = new Event(series.title, series.description, occurrenceDate,
@@ -49,6 +54,11 @@ public final class DisplayedListBuilder {
         e.recurrence = series.recurrence;
         e.recurrenceEndDate = series.recurrenceEndDate;
         e.type = series.type;
+        // Carry mandatory state so the card marker and edit dialog reflect it per occurrence.
+        e.importance = series.importance;
+        e.mandatoryFrom = series.mandatoryFrom;
+        e.mandatoryDates = series.mandatoryDates;
+        e.excludedDates = series.excludedDates;
         return e;
     }
 
@@ -72,13 +82,20 @@ public final class DisplayedListBuilder {
 
     public static List<Event> build(List<Event> rawEvents, List<Event> googleEvents,
                                     ViewWindow window, long now) {
-        return build(rawEvents, googleEvents, window, now, false);
+        return build(rawEvents, googleEvents, window, now, CalendarFilter.ALL);
+    }
+
+    /** Legacy boolean overload (kept for tests): false == ALL, true == FOOD. */
+    public static List<Event> build(List<Event> rawEvents, List<Event> googleEvents,
+                                    ViewWindow window, long now, boolean foodOnly) {
+        return build(rawEvents, googleEvents, window, now,
+                foodOnly ? CalendarFilter.FOOD : CalendarFilter.ALL);
     }
 
     public static List<Event> build(List<Event> rawEventsIn, List<Event> googleEventsIn,
-                                    ViewWindow window, long now, boolean foodOnly) {
-        List<Event> rawEvents = filterFood(rawEventsIn, foodOnly);
-        List<Event> googleEvents = filterFood(googleEventsIn, foodOnly);
+                                    ViewWindow window, long now, CalendarFilter filter) {
+        List<Event> rawEvents = filterByCalendar(rawEventsIn, filter);
+        List<Event> googleEvents = filterByCalendar(googleEventsIn, filter);
         List<Event> result = new ArrayList<>();
         long windowEnd = window.windowEnd(now);
 
@@ -87,7 +104,7 @@ public final class DisplayedListBuilder {
             long bestT = Long.MAX_VALUE;
             for (Event e : rawEvents) {
                 long t = RecurrenceExpander.nextOccurrenceAfter(e.date, e.time, e.recurrence,
-                        e.recurrenceEndDate, now);
+                        e.recurrenceEndDate, now, excludedSet(e));
                 if (t > 0 && t < bestT) {
                     bestT = t;
                     best = occurrenceCopy(e, millisToDate(t));
@@ -106,7 +123,7 @@ public final class DisplayedListBuilder {
 
         for (Event e : rawEvents) {
             for (String date : RecurrenceExpander.occurrenceDatesInWindow(e.date, e.time,
-                    e.recurrence, e.recurrenceEndDate, now, windowEnd)) {
+                    e.recurrence, e.recurrenceEndDate, now, windowEnd, excludedSet(e))) {
                 result.add(occurrenceCopy(e, date));
             }
         }

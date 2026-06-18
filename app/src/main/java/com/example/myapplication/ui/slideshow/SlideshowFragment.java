@@ -110,6 +110,7 @@ public class SlideshowFragment extends Fragment {
                 e.recurrence = recurrenceValue;
                 e.recurrenceEndDate = (repeatUntil != null && repeatUntil.isEmpty()) ? null : repeatUntil;
                 e.type = typeValue;
+                e.importance = binding.checkboxMandatory.isChecked();
 
                 eventViewModel.addEvent(e);
 
@@ -134,6 +135,7 @@ public class SlideshowFragment extends Fragment {
                 binding.repeatUntilLayout.setVisibility(View.GONE);
                 binding.typeDropdown.setText(typeLabels[0], false);
                 binding.editTextDescription.setText("");
+                binding.checkboxMandatory.setChecked(false);
                 Toast.makeText(getContext(), "Event created!", Toast.LENGTH_SHORT).show();
             });
         }

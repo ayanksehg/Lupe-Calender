@@ -16,7 +16,7 @@ public enum ViewWindow {
         }
     }
 
-    /** Upper bound (inclusive, end-of-day) for which events to show, given the current time. */
+
     public long windowEnd(long now) {
         if (this == EVENT) {
             return Long.MAX_VALUE;

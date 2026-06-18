@@ -37,10 +37,12 @@ public class EventViewModel extends ViewModel {
     private final MutableLiveData<List<Event>> rawEvents = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<ViewWindow> viewWindow = new MutableLiveData<>(ViewWindow.DAY);
     private final MutableLiveData<Integer> notificationLeadMinutes = new MutableLiveData<>(0);
-    private boolean foodOnly = false;
+    private CalendarFilter calendarFilter = CalendarFilter.ALL;
     private String userName = "";
     private List<Event> rawGoogleActivity = new ArrayList<>();
     private List<Event> rawGoogleFood = new ArrayList<>();
+    private final MutableLiveData<List<Event>> googleEvents = new MutableLiveData<>(new ArrayList<>());
+    private java.util.Set<String> mandatoryGoogleIds = new java.util.HashSet<>();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private ListenerRegistration listenerRegistration;
 
@@ -50,6 +52,10 @@ public class EventViewModel extends ViewModel {
 
     public LiveData<List<Event>> getRawEvents() {
         return rawEvents;
+    }
+
+    public LiveData<List<Event>> getGoogleEvents() {
+        return googleEvents;
     }
 
     public LiveData<ViewWindow> getViewWindow() {
@@ -74,8 +80,10 @@ public class EventViewModel extends ViewModel {
         List<Event> google = new ArrayList<>();
         google.addAll(rawGoogleActivity);
         google.addAll(rawGoogleFood);
+        // Expose all google events (unfiltered/unwindowed) so the scheduler can set their alarms.
+        googleEvents.postValue(new ArrayList<>(google));
         events.postValue(DisplayedListBuilder.build(
-                raw, google, window, System.currentTimeMillis(), foodOnly));
+                raw, google, window, System.currentTimeMillis(), calendarFilter));
     }
 
     public LiveData<Boolean> getIsRefreshing() {
@@ -224,6 +232,15 @@ public class EventViewModel extends ViewModel {
                     if (doc.exists() && doc.getLong("notificationLeadMinutes") != null) {
                         notificationLeadMinutes.setValue(doc.getLong("notificationLeadMinutes").intValue());
                     }
+                    mandatoryGoogleIds = new java.util.HashSet<>();
+                    if (doc.exists()) {
+                        Object ids = doc.get("mandatoryGoogleIds");
+                        if (ids instanceof List) {
+                            for (Object o : (List<?>) ids) {
+                                if (o != null) mandatoryGoogleIds.add(o.toString());
+                            }
+                        }
+                    }
                     String calendarId = doc.exists() ? doc.getString("calendarId") : null;
                     String mealCalendarId = doc.exists() ? doc.getString("mealCalendarId") : null;
 
@@ -284,7 +301,10 @@ public class EventViewModel extends ViewModel {
                         ce.location != null ? ce.location : "",
                         "google_calendar"
                 );
+                // Stable per-instance id (singleEvents=true) so favorites/mandatory persist across fetches.
+                if (ce.id != null && !ce.id.isEmpty()) ge.id = ce.id;
                 ge.type = type;
+                ge.importance = mandatoryGoogleIds.contains(ge.id);
                 events.add(ge);
             } catch (Exception e) {
                 Log.e("CalendarAPI", "Error parsing calendar item: " + ce.summary, e);
@@ -297,6 +317,103 @@ public class EventViewModel extends ViewModel {
         if (event.getId() != null) {
             db.collection("events").document(event.getId()).delete();
         }
+    }
+
+    /** Find the un-expanded series document for an id, or null. */
+    private Event findRawSeries(String eventId) {
+        if (eventId == null) return null;
+        List<Event> raw = rawEvents.getValue();
+        if (raw == null) return null;
+        for (Event e : raw) {
+            if (eventId.equals(e.getId())) return e;
+        }
+        return null;
+    }
+
+
+    public void deleteThisAndForward(String eventId, String occurrenceDate) {
+        Event series = findRawSeries(eventId);
+        if (series == null || occurrenceDate == null) return;
+        if (occurrenceDate.equals(series.date)) {
+            db.collection("events").document(eventId).delete();
+            return;
+        }
+        String newEnd = RecurrenceExpander.dayBefore(occurrenceDate);
+        if (newEnd == null) return;
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("recurrenceEndDate", newEnd);
+        db.collection("events").document(eventId)
+                .set(data, com.google.firebase.firestore.SetOptions.merge());
+    }
+
+
+    public void deleteOccurrence(String eventId, String occurrenceDate) {
+        if (eventId == null || occurrenceDate == null) return;
+        db.collection("events").document(eventId)
+                .update("excludedDates",
+                        com.google.firebase.firestore.FieldValue.arrayUnion(occurrenceDate));
+    }
+
+    // ---- Mandatory (admin, shared) ----
+
+    /** Apply mandatory at the chosen scope. Off is handled by clearMandatory. */
+    public void setMandatory(String eventId, String occurrenceDate, OccurrenceScope scope) {
+        if (eventId == null) return;
+        switch (scope) {
+            case SERIES:
+                merge(eventId, "importance", true);
+                break;
+            case FORWARD:
+                if (occurrenceDate != null) merge(eventId, "mandatoryFrom", occurrenceDate);
+                break;
+            case INSTANCE:
+            default:
+                if (occurrenceDate != null) {
+                    db.collection("events").document(eventId)
+                            .update("mandatoryDates",
+                                    com.google.firebase.firestore.FieldValue.arrayUnion(occurrenceDate));
+                }
+                break;
+        }
+    }
+
+    /**
+     * Mandatory for a Google event (no Firestore doc). Stored per-circle in the circle doc's
+     * mandatoryGoogleIds list and applied to the in-memory google events immediately.
+     */
+    public void setGoogleMandatory(String googleId, boolean mandatory) {
+        if (googleId == null) return;
+        String code = currentCircleCode.getValue();
+        if (code != null && !code.isEmpty()) {
+            Object op = mandatory
+                    ? com.google.firebase.firestore.FieldValue.arrayUnion(googleId)
+                    : com.google.firebase.firestore.FieldValue.arrayRemove(googleId);
+            db.collection("circles").document(code)
+                    .set(java.util.Collections.singletonMap("mandatoryGoogleIds", op),
+                            com.google.firebase.firestore.SetOptions.merge());
+        }
+        if (mandatory) mandatoryGoogleIds.add(googleId); else mandatoryGoogleIds.remove(googleId);
+        for (Event e : rawGoogleActivity) if (googleId.equals(e.getId())) e.importance = mandatory;
+        for (Event e : rawGoogleFood) if (googleId.equals(e.getId())) e.importance = mandatory;
+        rebuildDisplayedList();
+    }
+
+    /** Off == clear the whole series' mandatory state. */
+    public void clearMandatory(String eventId) {
+        if (eventId == null) return;
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("importance", false);
+        data.put("mandatoryFrom", null);
+        data.put("mandatoryDates", new java.util.ArrayList<String>());
+        db.collection("events").document(eventId)
+                .set(data, com.google.firebase.firestore.SetOptions.merge());
+    }
+
+    private void merge(String eventId, String field, Object value) {
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put(field, value);
+        db.collection("events").document(eventId)
+                .set(data, com.google.firebase.firestore.SetOptions.merge());
     }
 
     public void addEvent(Event event) {
@@ -347,8 +464,8 @@ public class EventViewModel extends ViewModel {
                     .set(data, com.google.firebase.firestore.SetOptions.merge());
         }
     }
-    public void setCalendarFilter(boolean foodOnly) {
-        this.foodOnly = foodOnly;
+    public void setCalendarFilter(CalendarFilter filter) {
+        this.calendarFilter = filter == null ? CalendarFilter.ALL : filter;
         rebuildDisplayedList();
     }
 

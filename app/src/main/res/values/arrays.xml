@@ -3,6 +3,7 @@
     <string-array name="recurrence_labels">
         <item>Does not repeat</item>
         <item>Daily</item>
+        <item>Every other day</item>
         <item>Weekly</item>
         <item>Monthly</item>
         <item>Yearly</item>
@@ -10,6 +11,7 @@
     <string-array name="recurrence_values">
         <item>NONE</item>
         <item>DAILY</item>
+        <item>EVERY_OTHER_DAY</item>
         <item>WEEKLY</item>
         <item>MONTHLY</item>
         <item>YEARLY</item>

@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import static org.junit.Assert.assertEquals;
 
+import com.example.myapplication.ui.home.CalendarFilter;
 import com.example.myapplication.ui.home.DisplayedListBuilder;
 import com.example.myapplication.ui.home.Event;
 import com.example.myapplication.ui.home.ViewWindow;
@@ -103,6 +104,32 @@ public class DisplayedListBuilderTest {
         List<Event> all = DisplayedListBuilder.build(
                 raw, new ArrayList<>(), ViewWindow.DAY, now, false);
         assertEquals(2, all.size());
+    }
+
+    @Test
+    public void activitiesFilterKeepsActivityAndComboDropsFood() {
+        List<Event> raw = new ArrayList<>();
+        raw.add(typed("Bingo", "06/15/2026", "10:00", "ACTIVITY"));
+        raw.add(typed("Lunch", "06/15/2026", "12:00", "FOOD"));
+        raw.add(typed("Tea + chat", "06/15/2026", "14:00", "ACTIVITY_FOOD"));
+        long now = millis(2026, 6, 15, 9, 0);
+        List<Event> activities = DisplayedListBuilder.build(
+                raw, new ArrayList<>(), ViewWindow.DAY, now, CalendarFilter.ACTIVITIES);
+        assertEquals(2, activities.size());
+        assertEquals("Bingo", activities.get(0).title);
+        assertEquals("Tea + chat", activities.get(1).title);
+    }
+
+    @Test
+    public void allFilterKeepsEveryType() {
+        List<Event> raw = new ArrayList<>();
+        raw.add(typed("Bingo", "06/15/2026", "10:00", "ACTIVITY"));
+        raw.add(typed("Lunch", "06/15/2026", "12:00", "FOOD"));
+        raw.add(typed("Tea + chat", "06/15/2026", "14:00", "ACTIVITY_FOOD"));
+        long now = millis(2026, 6, 15, 9, 0);
+        List<Event> all = DisplayedListBuilder.build(
+                raw, new ArrayList<>(), ViewWindow.DAY, now, CalendarFilter.ALL);
+        assertEquals(3, all.size());
     }
 
     @Test

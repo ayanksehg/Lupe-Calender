@@ -3,17 +3,18 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Lupe</string>
-    <string name="nav_header_subtitle">Stay connected with your circle</string>
+
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
 
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Create Event</string>
-    <string name="menu_events">Events</string>
+    <string name="menu_events">Activities</string>
     <string name="menu_food">Food</string>
+    <string name="menu_all">All Events</string>
 
-    <!-- Start page -->
+
     <string name="welcome_title">Welcome to Lupe</string>
 
 </resources>

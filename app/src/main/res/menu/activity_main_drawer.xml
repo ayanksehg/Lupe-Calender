@@ -17,6 +17,10 @@
             android:icon="@drawable/ic_event_home"
             android:title="@string/menu_food" />
         <item
+            android:id="@+id/nav_calendar_all"
+            android:icon="@drawable/ic_event_home"
+            android:title="@string/menu_all" />
+        <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_event_create"
             android:title="@string/menu_slideshow" />

@@ -62,6 +62,8 @@ public class HomeFragment extends Fragment {
                 Navigation.findNavController(v).navigate(R.id.nav_calendar_events));
         binding.buttonFood.setOnClickListener(v ->
                 Navigation.findNavController(v).navigate(R.id.nav_calendar_food));
+        binding.buttonAll.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.nav_calendar_all));
 
         return binding.getRoot();
     }

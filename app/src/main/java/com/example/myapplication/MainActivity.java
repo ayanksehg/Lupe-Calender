@@ -63,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_calendar_events, R.id.nav_calendar_food, R.id.nav_slideshow)
+                R.id.nav_home, R.id.nav_calendar_events, R.id.nav_calendar_food,
+                R.id.nav_calendar_all, R.id.nav_slideshow)
                 .setOpenableLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(MainActivity.this, R.id.nav_host_fragment_content_main);
@@ -73,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
                 (controller, destination, arguments) -> {
                     Mode mode = eventViewModel.getSelectedMode().getValue();
                     int id = destination.getId();
-                    boolean isCalendar = id == R.id.nav_calendar_events || id == R.id.nav_calendar_food;
+                    boolean isCalendar = id == R.id.nav_calendar_events
+                            || id == R.id.nav_calendar_food
+                            || id == R.id.nav_calendar_all;
                     boolean isMenu = id == R.id.nav_home;
 
                     if (mode == Mode.JOIN && (isMenu || isCalendar)) {
@@ -141,6 +144,23 @@ public class MainActivity extends AppCompatActivity {
 
     public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
                                           String recurrence, String recurrenceEndDate, int leadMinutes) {
+        scheduleEventNotification(time, title, requestCode, eventId, recurrence, recurrenceEndDate,
+                leadMinutes, null);
+    }
+
+    public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
+                                          String recurrence, String recurrenceEndDate, int leadMinutes,
+                                          java.util.ArrayList<String> excludedDates) {
+        scheduleEventNotification(time, title, requestCode, eventId, recurrence, recurrenceEndDate,
+                leadMinutes, excludedDates, false, null, null, false);
+    }
+
+    public void scheduleEventNotification(long time, String title, int requestCode, String eventId,
+                                          String recurrence, String recurrenceEndDate, int leadMinutes,
+                                          java.util.ArrayList<String> excludedDates,
+                                          boolean mandatorySeries, String mandatoryFrom,
+                                          java.util.ArrayList<String> mandatoryDates,
+                                          boolean notifyOnlyFavorites) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
         intent.putExtra("title", title);
@@ -149,6 +169,11 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("recurrence_end_date", recurrenceEndDate);
         intent.putExtra("request_code", requestCode);
         intent.putExtra("lead_minutes", leadMinutes);
+        intent.putStringArrayListExtra("excluded_dates", excludedDates);
+        intent.putExtra("mandatory_series", mandatorySeries);
+        intent.putExtra("mandatory_from", mandatoryFrom);
+        intent.putStringArrayListExtra("mandatory_dates", mandatoryDates);
+        intent.putExtra("notify_only_favorites", notifyOnlyFavorites);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 this,
@@ -161,6 +186,22 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // No exact-alarm permission: fall back to inexact so the reminder still fires (possibly late).
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pendingIntent);
+        }
+    }
+
+    /** Cancel a previously scheduled event alarm (used when an event/series is deleted). */
+    public void cancelEventNotification(int requestCode) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE
+        );
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent);
+            pendingIntent.cancel();
         }
     }
     @Override
