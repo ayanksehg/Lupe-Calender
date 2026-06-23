@@ -14,7 +14,7 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.example.myapplication"
+    namespace = "com.calendar.lupe"
     compileSdk = 36
 
     defaultConfig {
@@ -63,11 +63,14 @@ dependencies {
     implementation(libs.navigation.ui)
     implementation(libs.games.activity)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
     implementation(libs.camera.camera2.pipe)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.google.firebase.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.firebase.functions)
 }

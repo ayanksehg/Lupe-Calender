@@ -15,8 +15,11 @@ googleGmsGoogleServices = "4.4.4"
 firebaseFirestore = "26.1.0"
 cameraCamera2Pipe = "1.6.0"
 swiperefreshlayout = "1.1.0"
+firebaseAuth = "24.1.0"
+firebaseFunctions = "22.1.1"
 
 [libraries]
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -31,6 +34,8 @@ games-activity = { group = "androidx.games", name = "games-activity", version.re
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 camera-camera2-pipe = { group = "androidx.camera", name = "camera-camera2-pipe", version.ref = "cameraCamera2Pipe" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+google-firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+firebase-functions = { group = "com.google.firebase", name = "firebase-functions", version.ref = "firebaseFunctions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

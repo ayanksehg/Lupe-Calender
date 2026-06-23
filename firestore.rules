@@ -1,0 +1,46 @@
+rules_version = '2';
+
+// Lupe shared-calendar security model.
+//
+// Trust is enforced here, not in the client. Privilege comes from the `admin`
+// custom claim that the createCircle / joinAsAdmin Cloud Functions stamp onto a
+// user (admin == the circle code they administer). The client's saved mode is
+// UI only and grants nothing.
+//
+// Residents join with just a circle code and have no claim, so reads are open to
+// any signed-in (anonymous) user. The circle code is the sharing gate. There is
+// intentionally no per-circle read isolation in this model.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Circle admin codes ({ adminCode }). Off-limits to all clients — only the
+    // Cloud Functions touch this, and the Admin SDK bypasses these rules.
+    match /default/{circle} {
+      allow read, write: if false;
+    }
+
+    // Events. Any signed-in user may read; only the owning circle's admin may
+    // create, modify, or delete, and may not move an event to another circle.
+    match /events/{eventId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    && request.auth.token.admin == request.resource.data.circleCode;
+
+      allow update: if request.auth != null
+                    && request.auth.token.admin == resource.data.circleCode
+                    && request.resource.data.circleCode == resource.data.circleCode;
+
+      allow delete: if request.auth != null
+                    && request.auth.token.admin == resource.data.circleCode;
+    }
+
+    // Per-circle settings + Google Calendar link. Document id is the circle code.
+    // Any signed-in user may read; only that circle's admin may write.
+    match /circles/{circle} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null
+                   && request.auth.token.admin == circle;
+    }
+  }
+}
