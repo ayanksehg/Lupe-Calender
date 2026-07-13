@@ -22,14 +22,14 @@ public class Event {
     public String recurrenceEndDate;
     public List<String> excludedDates;
 
-    public boolean importance;          // whole-series mandatory
-    public String mandatoryFrom;        // "MM/dd/yyyy" inclusive forward cutoff, or null
-    public List<String> mandatoryDates; // per-instance mandatory occurrences ("MM/dd/yyyy")
+    public boolean importance;          
+    public String mandatoryFrom;        
+    public List<String> mandatoryDates; 
     TextView Card;
 
 
     public Event() {
-        // Required for Firestore
+        
     }
 
     public Event(String title, String description, String date, String time, String location, String circleCode){

@@ -52,13 +52,7 @@ public class StartFragment extends Fragment {
         return root;
     }
 
-    /**
-     * Restores the UI mode for a saved session. Privilege (ADMIN) is never taken from the saved
-     * string — it is re-derived from the anonymous user's custom claim, which the server set and
-     * which persists for this install. A resident who hand-edits prefs to "ADMIN" has no matching
-     * claim, so they fall back to the resident (JOIN) UI and the security rules reject every write.
-     * The saved mode only decides which screen/UI shows, never what is allowed.
-     */
+
     private void resumeSession(String savedCode, String savedMode) {
         Mode savedModeEnum;
         try {
@@ -118,6 +112,9 @@ public class StartFragment extends Fragment {
         binding.buttonUnc.setOnClickListener(v -> setMode(Mode.JOIN));
         binding.buttonAdmin.setOnClickListener(v -> setMode(Mode.ADMIN));
         binding.buttonEnter.setOnClickListener(v -> confirmAction(v));
+        binding.privacyLink.setOnClickListener(v -> startActivity(
+                new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://scsc-2ff8e.web.app/privacy.html"))));
     }
     private void setMode(Mode mode) {
         currentMode = mode;

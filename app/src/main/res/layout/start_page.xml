@@ -130,5 +130,17 @@
             android:visibility="gone"
             app:backgroundTint="@color/watch_blue_dark" />
 
+        <TextView
+            android:id="@+id/privacy_link"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:padding="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="Privacy Policy"
+            android:textColor="@color/watch_text_secondary"
+            android:textSize="14sp" />
+
     </LinearLayout>
 </ScrollView>

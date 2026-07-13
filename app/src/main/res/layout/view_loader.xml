@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/loader_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#CCF0F6FC"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <com.calendar.lupe.LoaderView
+            android:id="@+id/loader_view"
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="@string/app_name"
+            android:textColor="@color/watch_text_secondary"
+            android:textSize="14sp"
+            android:letterSpacing="0.03" />
+    </LinearLayout>
+</FrameLayout>

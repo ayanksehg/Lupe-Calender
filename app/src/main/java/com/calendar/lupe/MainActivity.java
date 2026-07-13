@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -52,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         requestNotificationPermission();
-        requestExactAlarmPermission();
         setSupportActionBar(binding.appBarMain.toolbar);
 
         DrawerLayout drawer = binding.drawerLayout;
@@ -78,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                         drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
                         navigationView.setVisibility(View.GONE);
                         if (getSupportActionBar() != null) {
-                            // Up only on the calendar screens (to return to the menu); none on the menu itself.
+
                             getSupportActionBar().setDisplayHomeAsUpEnabled(isCalendar);
                             getSupportActionBar().setHomeButtonEnabled(isCalendar);
                         }
@@ -86,12 +84,57 @@ public class MainActivity extends AppCompatActivity {
                         drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                         navigationView.setVisibility(View.VISIBLE);
                     }
+
+              
+                    if (isCalendar) {
+                        showLoader();
+                        hideLoader(); 
+                    }
                 }
         );
 
         createNotificationChannel();
+        setupLoaderOverlay();
 
     }
+    private long loaderShownAt = 0L;
+
+    private void setupLoaderOverlay() {
+        View overlay = binding.loaderInclude.getRoot();
+
+        overlay.postDelayed(() -> {
+            Boolean loading = eventViewModel.getIsEventsLoading().getValue();
+            if (loading == null || !loading) hideLoader();
+        }, 900);
+
+        eventViewModel.getIsEventsLoading().observe(this, loading -> {
+            if (Boolean.TRUE.equals(loading)) showLoader();
+            else hideLoader();
+        });
+    }
+
+    private void showLoader() {
+        View overlay = binding.loaderInclude.getRoot();
+        loaderShownAt = System.currentTimeMillis();
+        overlay.animate().cancel();
+        binding.loaderInclude.loaderView.randomize();
+        overlay.setVisibility(View.VISIBLE);
+        overlay.setAlpha(1f);
+    }
+
+    private void hideLoader() {
+        View overlay = binding.loaderInclude.getRoot();
+        if (overlay.getVisibility() != View.VISIBLE) return;
+        long elapsed = System.currentTimeMillis() - loaderShownAt;
+        long delay = Math.max(0, 400 - elapsed); 
+        overlay.postDelayed(() -> {
+
+            if (Boolean.TRUE.equals(eventViewModel.getIsEventsLoading().getValue())) return;
+            overlay.animate().alpha(0f).setDuration(250)
+                    .withEndAction(() -> overlay.setVisibility(View.GONE)).start();
+        }, delay);
+    }
+
     private static final String CHANNEL_ID = "event_reminders";
     private void createNotificationChannel(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -116,16 +159,6 @@ public class MainActivity extends AppCompatActivity {
                         this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         1);
-            }
-        }
-    }
-    private void requestExactAlarmPermission(){
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
-                startActivity(intent);
             }
         }
     }
@@ -202,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }

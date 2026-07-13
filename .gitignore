@@ -14,6 +14,13 @@
 .cxx
 local.properties
 
+
+web/
+
+# Test sources — not tracked in this repo
+app/src/test/
+app/src/androidTest/
+
 # Claude Code tooling / docs — not part of the app
 .claude/
 CLAUDE.md

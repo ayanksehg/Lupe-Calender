@@ -270,7 +270,7 @@ public class CalendarFragment extends Fragment {
 
         eventcardBinding.textTitle.setText(event.title);
         eventcardBinding.textDate.setText(event.date);
-        eventcardBinding.textTime.setText(event.time);
+        eventcardBinding.textTime.setText(com.calendar.lupe.TimeFormat.format(event.time));
 
         String recurLabel = recurrenceLabel(event.recurrence);
         if (recurLabel != null) {

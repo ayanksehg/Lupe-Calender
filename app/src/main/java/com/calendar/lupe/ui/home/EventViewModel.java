@@ -36,6 +36,8 @@ public class EventViewModel extends ViewModel {
     private final MutableLiveData<List<Event>> rawEvents = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<ViewWindow> viewWindow = new MutableLiveData<>(ViewWindow.DAY);
     private final MutableLiveData<Integer> notificationLeadMinutes = new MutableLiveData<>(0);
+    private final androidx.lifecycle.MutableLiveData<Boolean> isEventsLoading =
+            new androidx.lifecycle.MutableLiveData<>(false);
     private CalendarFilter calendarFilter = CalendarFilter.ALL;
     private String userName = "";
     private List<Event> rawGoogleActivity = new ArrayList<>();
@@ -103,6 +105,10 @@ public class EventViewModel extends ViewModel {
         return currentCircleCode;
     }
 
+    public androidx.lifecycle.LiveData<Boolean> getIsEventsLoading() {
+        return isEventsLoading;
+    }
+
     public void setCurrentCircleCode(String code) {
         currentCircleCode.setValue(code);
         loadEvents(code);
@@ -120,6 +126,8 @@ public class EventViewModel extends ViewModel {
             events.setValue(new ArrayList<>());
             return;
         }
+
+        isEventsLoading.setValue(true);
 
         listenerRegistration = db.collection("events")
                 .whereEqualTo("circleCode", circleCode)
@@ -157,6 +165,7 @@ public class EventViewModel extends ViewModel {
                         rawEvents.setValue(eventList);
                         rebuildDisplayedList();
                         fetchEventsForCircle(circleCode);
+                        isEventsLoading.postValue(false);
                     }
                 });
     }
