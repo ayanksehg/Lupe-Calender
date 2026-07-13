@@ -114,7 +114,7 @@ public class StartFragment extends Fragment {
         binding.buttonEnter.setOnClickListener(v -> confirmAction(v));
         binding.privacyLink.setOnClickListener(v -> startActivity(
                 new android.content.Intent(android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse("https://scsc-2ff8e.web.app/privacy.html"))));
+                        android.net.Uri.parse("https://lupecalendar.com/privacy.html"))));
     }
     private void setMode(Mode mode) {
         currentMode = mode;
